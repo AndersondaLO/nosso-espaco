@@ -1,0 +1,2761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#FDF6EF" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Nosso Espaço" />
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-inline';
+               style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+               font-src https://fonts.gstatic.com;
+               img-src 'self' data: blob:;
+               connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebase.googleapis.com wss://*.firebaseio.com;">
+<title>♡ Nosso Espaço</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose:    #C2506A;
+    --rose-lt: #F7DDE4;
+    --rose-dk: #7A2A3C;
+    --cream:   #FDF6EF;
+    --ink:     #2A1F1A;
+    --muted:   #8C7267;
+    --sand:    #E8DDD5;
+    --white:   #FFFFFF;
+    --radius:  16px;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans:  'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+  }
+
+  button, input, textarea, select { touch-action: manipulation; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(253,246,239,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--sand);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 60px;
+  }
+
+  .nav-brand { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--rose); }
+  .nav-tabs  { display: flex; gap: 4px; }
+
+  .nav-tab {
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-tab:hover  { color: var(--rose); background: var(--rose-lt); }
+  .nav-tab.active { color: var(--rose-dk); background: var(--rose-lt); }
+  .tab-icon { font-size: 15px; }
+
+  /* ── SECTIONS ── */
+  .section {
+    display: none;
+    min-height: calc(100vh - 60px);
+    padding: 3rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title { font-family: var(--serif); font-size: 32px; font-weight: 400; color: var(--ink); margin-bottom: 6px; }
+  .section-sub   { font-size: 14px; color: var(--muted); margin-bottom: 2rem; }
+
+  /* ── CONTADOR ── */
+  .counter-card {
+    background: var(--ink);
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .counter-card::before {
+    content: '♡';
+    position: absolute;
+    font-size: 200px;
+    color: rgba(255,255,255,0.03);
+    top: -40px; right: -30px;
+    line-height: 1;
+  }
+
+  .counter-number { font-family: var(--serif); font-size: 96px; line-height: 1; color: var(--white); letter-spacing: -2px; }
+  .counter-label  { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
+
+  .counter-date-input {
+    background: var(--white);
+    border: 1.5px solid var(--sand);
+    border-radius: 12px;
+    padding: 14px 18px;
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .counter-date-input:focus { border-color: var(--rose); }
+
+  .counter-name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 1rem; }
+
+  .stat-box { background: var(--white); border: 1px solid var(--sand); border-radius: 12px; padding: 1rem; text-align: center; }
+  .stat-n   { font-family: var(--serif); font-size: 28px; color: var(--rose); }
+  .stat-l   { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .milestone { background: var(--rose-lt); border-radius: 12px; padding: 1rem 1.25rem; margin-top: 1rem; display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--rose-dk); }
+
+  /* ── MENSAGENS ── */
+  .msg-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .msg-quote { font-family: var(--serif); font-size: 22px; font-style: italic; line-height: 1.5; color: var(--ink); max-width: 480px; transition: opacity 0.3s; }
+  .msg-quote.fade { opacity: 0; }
+
+  .btn-primary { background: var(--rose); color: var(--white); border: none; border-radius: 40px; padding: 14px 32px; font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+  .btn-primary:hover  { background: var(--rose-dk); transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .msg-category { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+
+  .cat-btn { background: var(--white); border: 1px solid var(--sand); border-radius: 20px; padding: 6px 16px; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.2s; font-family: var(--sans); }
+  .cat-btn:hover, .cat-btn.active { background: var(--rose-lt); border-color: var(--rose); color: var(--rose-dk); }
+
+  /* ── DESEJOS ── */
+  .wish-tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+
+  .wish-tab { background: var(--white); border: 1px solid var(--sand); border-radius: 20px; padding: 7px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.2s; font-family: var(--sans); }
+  .wish-tab.active { background: var(--ink); border-color: var(--ink); color: var(--white); }
+
+  .wish-input-row { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+
+  .wish-input { flex: 1; background: var(--white); border: 1.5px solid var(--sand); border-radius: 12px; padding: 12px 16px; font-family: var(--sans); font-size: 16px; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  .wish-input:focus { border-color: var(--rose); }
+
+  .wish-add { background: var(--rose); color: var(--white); border: none; border-radius: 12px; padding: 0 20px; font-size: 20px; cursor: pointer; transition: all 0.2s; min-width: 48px; }
+  .wish-add:hover { background: var(--rose-dk); }
+
+  .wish-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .wish-item { background: var(--white); border: 1px solid var(--sand); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; transition: all 0.2s; }
+  .wish-item:hover { border-color: var(--rose); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .wish-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--sand); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.2s; color: transparent; background: var(--white); }
+  .wish-check.done { background: var(--rose); border-color: var(--rose); color: var(--white); }
+
+  .wish-text { flex: 1; font-size: 14px; transition: all 0.2s; }
+  .wish-text.done { text-decoration: line-through; color: var(--muted); }
+
+  .wish-del { background: none; border: none; color: var(--sand); cursor: pointer; font-size: 16px; padding: 0 4px; transition: color 0.2s; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .wish-del:hover { color: var(--rose); }
+
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 14px; font-style: italic; }
+
+  label { display: block; font-size: 12px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+  /* ── SURPRESA ── */
+  .surprise-setup { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+
+  .role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+  .role-btn { border: 1.5px solid var(--sand); border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; background: var(--white); transition: all 0.2s; font-family: var(--sans); }
+  .role-btn:hover { border-color: var(--rose); }
+  .role-btn.active { border-color: var(--rose); background: var(--rose-lt); }
+  .role-btn .role-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+  .role-btn .role-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .role-btn .role-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .surprise-textarea { width: 100%; background: var(--cream); border: 1.5px solid var(--sand); border-radius: 12px; padding: 14px 16px; font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); outline: none; resize: none; line-height: 1.6; transition: border-color 0.2s; min-height: 100px; margin-bottom: 10px; }
+  .surprise-textarea:focus { border-color: var(--rose); }
+
+  .send-row { display: flex; gap: 10px; }
+  .btn-lembrei { flex: 1; background: var(--sand); color: var(--ink); border: none; border-radius: 40px; padding: 14px 20px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-lembrei:hover { background: #d8cfc8; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 16px;
+    padding: 14px 20px;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+  .toast-icon  { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .toast-body  { flex: 1; }
+  .toast-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); margin-bottom: 3px; letter-spacing: 0.5px; }
+  .toast-msg   { font-family: var(--serif); font-style: italic; font-size: 15px; line-height: 1.4; color: var(--white); }
+  .toast-close { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 16px; padding: 0; flex-shrink: 0; line-height: 1; }
+
+  /* ── INBOX ── */
+  .inbox-empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 14px; font-style: italic; }
+
+  .inbox-item { background: var(--white); border: 1px solid var(--sand); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 8px; animation: slideIn 0.3s ease; position: relative; }
+  .inbox-item.unread { border-color: var(--rose); background: var(--rose-lt); }
+  .inbox-item.unread::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--rose); position: absolute; top: 14px; right: 14px; }
+
+  .inbox-from { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .inbox-text { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); line-height: 1.5; }
+  .inbox-time { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .inbox-del  { position: absolute; bottom: 10px; right: 14px; background: none; border: none; color: var(--sand); cursor: pointer; font-size: 13px; transition: color 0.2s; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .inbox-del:hover { color: var(--rose); }
+
+  .unread-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--rose); color: white; border-radius: 50%; font-size: 10px; font-weight: 500; margin-left: 5px; vertical-align: middle; }
+
+  /* ── FOTO DE CAPA ── */
+  .cover-area { position: relative; width: 100%; height: 220px; border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; background: var(--sand); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .cover-area img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover-overlay  { position: absolute; inset: 0; background: linear-gradient(to top, rgba(42,31,26,0.55) 0%, transparent 60%); display: flex; align-items: flex-end; justify-content: space-between; padding: 1rem 1.25rem; }
+  .cover-names    { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--white); text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+  .cover-upload-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; color: var(--white); font-size: 12px; font-family: var(--sans); padding: 5px 14px; cursor: pointer; backdrop-filter: blur(6px); transition: background 0.2s; }
+  .cover-upload-btn:hover { background: rgba(255,255,255,0.28); }
+  .cover-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .cover-empty-icon { font-size: 36px; opacity: 0.5; }
+  #cover-file-input { display: none; }
+
+  /* ── HEARTBEAT ── */
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25%       { transform: scale(1.15); }
+    50%       { transform: scale(1); }
+    75%       { transform: scale(1.08); }
+  }
+  .pulse { display: inline-block; animation: heartbeat 1.8s infinite; }
+
+  /* ── MEMÓRIAS MENSAIS ── */
+  .memory-card { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; animation: slideIn 0.3s ease; }
+
+  .memory-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; cursor: pointer; user-select: none; -webkit-user-select: none; transition: background 0.15s; gap: 12px; }
+  .memory-header:active { background: var(--cream); }
+
+  .memory-month { font-family: var(--serif); font-size: 17px; color: var(--ink); }
+  .memory-date  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .memory-indicators { font-size: 14px; letter-spacing: 2px; }
+  .memory-add-hint   { font-size: 13px; color: var(--rose); font-weight: 500; }
+  .memory-chevron    { font-size: 13px; color: var(--muted); transition: transform 0.25s; flex-shrink: 0; }
+  .memory-chevron.open { transform: rotate(180deg); }
+  .memory-body { border-top: 1px solid var(--sand); padding: 1.25rem; }
+
+  .memory-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 1rem; }
+
+  .memory-photo-wrap { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--sand); }
+  .memory-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .memory-photo-del { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .memory-photo-add { aspect-ratio: 1; border-radius: 10px; border: 1.5px dashed var(--sand); background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: var(--muted); font-size: 11px; transition: border-color 0.2s, color 0.2s; }
+  .memory-photo-add:hover, .memory-photo-add:active { border-color: var(--rose); color: var(--rose); }
+  .memory-photo-add-icon { font-size: 22px; }
+
+  .memory-block-label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; margin-top: 1rem; }
+  .memory-block-label:first-child { margin-top: 0; }
+
+  .memory-input { width: 100%; background: var(--cream); border: 1.5px solid var(--sand); border-radius: 10px; padding: 11px 14px; font-family: var(--sans); font-size: 16px; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  .memory-input:focus { border-color: var(--rose); }
+
+  .memory-music-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+
+  .memory-textarea { width: 100%; background: var(--cream); border: 1.5px solid var(--sand); border-radius: 10px; padding: 12px 14px; font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); outline: none; resize: none; line-height: 1.6; min-height: 90px; transition: border-color 0.2s; }
+  .memory-textarea:focus { border-color: var(--rose); }
+
+  .btn-save-memory { width: 100%; background: var(--rose); color: var(--white); border: none; border-radius: 40px; padding: 13px 24px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 1rem; transition: all 0.2s; }
+  .btn-save-memory:hover { background: var(--rose-dk); }
+
+  .memory-view-msg    { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); line-height: 1.6; margin-bottom: 1rem; }
+  .memory-view-music  { display: flex; align-items: center; gap: 10px; background: var(--rose-lt); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; text-decoration: none; color: inherit; }
+  .memory-view-music-icon   { font-size: 20px; flex-shrink: 0; }
+  .memory-view-music-title  { font-size: 14px; font-weight: 500; color: var(--rose-dk); }
+  .memory-view-music-artist { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .memory-edit-btn { background: none; border: 1px solid var(--sand); border-radius: 20px; padding: 7px 16px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all 0.2s; display: inline-block; margin-top: 0.75rem; }
+  .memory-edit-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+  /* ── ÁLBUM DIGITAL ── */
+  .album-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .album-count  { font-size: 13px; color: var(--muted); }
+
+  .album-edit-toggle { background: none; border: 1px solid var(--sand); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all 0.2s; }
+  .album-edit-toggle:hover  { border-color: var(--rose); color: var(--rose); }
+  .album-edit-toggle.active { background: var(--rose-lt); border-color: var(--rose); color: var(--rose-dk); }
+
+  .album-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 12px; overflow: hidden; }
+
+  .album-item { position: relative; aspect-ratio: 1; overflow: hidden; cursor: pointer; background: var(--sand); animation: fadeIn 0.3s ease; }
+  .album-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.2s; }
+  .album-item:active img { transform: scale(0.96); }
+
+  .album-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%); padding: 18px 6px 6px; font-size: 10px; color: rgba(255,255,255,0.9); line-height: 1.3; }
+
+  .album-item-del { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 26px; height: 26px; font-size: 11px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 2; }
+  .album-edit-mode .album-item-del { display: flex; }
+
+  @keyframes albumShake {
+    0%, 100% { transform: rotate(0deg); }
+    25%       { transform: rotate(-1.2deg); }
+    75%       { transform: rotate(1.2deg); }
+  }
+  .album-edit-mode .album-item              { animation: albumShake 0.45s ease infinite; }
+  .album-edit-mode .album-item:nth-child(2n){ animation-delay: .08s; }
+  .album-edit-mode .album-item:nth-child(3n){ animation-delay: .16s; }
+
+  .album-fab { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 16px); right: 20px; z-index: 200; }
+  @media (min-width: 601px) { .album-fab { bottom: 28px; } }
+
+  .album-fab-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--rose); color: #fff; border: none; font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 4px 20px rgba(194,80,106,0.45); display: flex; align-items: center; justify-content: center; transition: transform 0.25s, background 0.2s; }
+  .album-fab-btn:hover    { background: var(--rose-dk); }
+  .album-fab-btn.fab-open { transform: rotate(45deg); background: var(--rose-dk); }
+
+  .album-fab-menu { position: absolute; bottom: 68px; right: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; animation: fadeIn 0.2s ease; }
+
+  .album-fab-option { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--sand); border-radius: 28px; padding: 11px 18px; font-size: 14px; font-family: var(--sans); color: var(--ink); cursor: pointer; box-shadow: 0 2px 14px rgba(0,0,0,0.1); white-space: nowrap; transition: all 0.2s; }
+  .album-fab-option:hover { border-color: var(--rose); color: var(--rose-dk); }
+
+  .album-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 4rem 1rem; color: var(--muted); text-align: center; }
+  .album-empty-icon { font-size: 48px; opacity: 0.4; }
+  .album-empty-text { font-size: 14px; font-style: italic; }
+
+  /* Lightbox */
+  .album-lightbox { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.96); display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; padding: env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px); }
+  .album-lb-img { max-width: 100%; max-height: calc(100svh - 110px); object-fit: contain; display: block; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .album-lb-close { position: absolute; top: calc(env(safe-area-inset-top,0px) + 10px); right: 12px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 40px; height: 40px; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .album-lb-counter { position: absolute; top: calc(env(safe-area-inset-top,0px) + 17px); left: 50%; transform: translateX(-50%); font-size: 12px; color: rgba(255,255,255,0.45); font-family: var(--sans); letter-spacing: 1px; pointer-events: none; }
+  .album-lb-nav  { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.14); border: none; border-radius: 50%; width: 42px; height: 42px; color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .album-lb-prev { left: 10px; }
+  .album-lb-next { right: 10px; }
+  .album-lb-caption { position: absolute; bottom: calc(env(safe-area-inset-bottom,0px) + 18px); left: 50%; transform: translateX(-50%); background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.85); font-family: var(--serif); font-style: italic; font-size: 15px; text-align: center; width: 80%; max-width: 420px; outline: none; padding: 6px 4px; }
+  .album-lb-caption::placeholder { color: rgba(255,255,255,0.28); }
+
+  /* ── POUPANÇA ── */
+  .poup-new-form { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .poup-input { flex: 1; background: var(--white); border: 1.5px solid var(--sand); border-radius: 12px; padding: 12px 16px; font-family: var(--sans); font-size: 15px; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  .poup-input:focus { border-color: var(--rose); }
+  .poup-goals { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+  .poup-card { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); padding: 1.25rem 1.5rem; animation: slideIn 0.3s ease; }
+  .poup-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .poup-card-name { font-family: var(--serif); font-size: 20px; font-weight: 400; color: var(--ink); }
+  .poup-card-del { background: none; border: none; color: var(--sand); cursor: pointer; font-size: 16px; transition: color 0.2s; min-width: 36px; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; }
+  .poup-card-del:hover { color: var(--rose); }
+  .poup-amounts { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .poup-saved { font-size: 22px; font-weight: 500; color: var(--rose); font-family: var(--serif); }
+  .poup-target { font-size: 13px; color: var(--muted); }
+  .poup-bar-bg { background: var(--sand); border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+  .poup-bar-fill { height: 100%; background: var(--rose); border-radius: 100px; transition: width 0.5s ease; }
+  .poup-pct { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .poup-deposit-form { margin-top: 12px; background: var(--cream); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .poup-deposit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .poup-hist-section { margin-top: 1rem; }
+  .poup-hist-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .poup-hist-tab { background: var(--white); border: 1px solid var(--sand); border-radius: 20px; padding: 7px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.2s; font-family: var(--sans); }
+  .poup-hist-tab.active { background: var(--ink); border-color: var(--ink); color: var(--white); }
+  .poup-hist-list { display: flex; flex-direction: column; gap: 8px; }
+  .poup-hist-entry { background: var(--white); border: 1px solid var(--sand); border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .poup-hist-left { flex: 1; }
+  .poup-hist-goal { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+  .poup-hist-who { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .poup-hist-note { font-size: 12px; color: var(--muted); margin-top: 2px; font-style: italic; }
+  .poup-hist-right { text-align: right; flex-shrink: 0; }
+  .poup-hist-val { font-size: 16px; font-weight: 500; color: var(--rose); font-family: var(--serif); }
+  .poup-hist-date { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── DATAS ESPECIAIS ── */
+  .datas-form { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .datas-input { background: var(--white); border: 1.5px solid var(--sand); border-radius: 12px; padding: 12px 16px; font-family: var(--sans); font-size: 15px; color: var(--ink); outline: none; transition: border-color 0.2s; width: 100%; }
+  .datas-input:focus { border-color: var(--rose); }
+  .datas-check-row { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 2px; }
+  .datas-check-row input[type=checkbox] { accent-color: var(--rose); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+  .datas-check-row span { font-size: 13px; color: var(--muted); font-family: var(--sans); cursor: pointer; user-select: none; }
+  .datas-list { display: flex; flex-direction: column; gap: 10px; }
+  .data-card { background: var(--white); border: 1px solid var(--sand); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; animation: slideIn 0.3s ease; }
+  .data-card.is-today { border-color: var(--rose); background: var(--rose-lt); }
+  .data-badge { min-width: 60px; text-align: center; flex-shrink: 0; }
+  .data-badge-num { font-family: var(--serif); font-size: 30px; line-height: 1; color: var(--rose); }
+  .data-badge-num.past { color: var(--sand); }
+  .data-badge-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .data-info { flex: 1; min-width: 0; }
+  .data-name { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .data-meta { font-size: 12px; color: var(--muted); }
+  .data-chip { display: inline-block; font-size: 10px; font-weight: 600; color: var(--rose-dk); background: var(--white); border-radius: 20px; padding: 2px 8px; margin-top: 4px; }
+  .data-del { background: none; border: none; color: var(--sand); cursor: pointer; font-size: 15px; transition: color 0.2s; min-width: 36px; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .data-del:hover { color: var(--rose); }
+
+  /* ── MÚSICA DO RELACIONAMENTO ── */
+  .rel-song-card { background: var(--ink); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .rel-song-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+  .rel-song-view { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .rel-song-icon { font-size: 26px; flex-shrink: 0; }
+  .rel-song-info { flex: 1; min-width: 0; }
+  .rel-song-name { font-family: var(--serif); font-size: 20px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rel-song-artist { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .rel-song-empty { font-size: 14px; color: rgba(255,255,255,0.35); font-style: italic; cursor: pointer; transition: color 0.2s; }
+  .rel-song-empty:hover { color: rgba(255,255,255,0.6); }
+  .rel-song-edit-hint { font-size: 12px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+  .rel-song-input { width: 100%; background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 11px 14px; font-family: var(--sans); font-size: 15px; color: var(--white); outline: none; transition: border-color 0.2s; }
+  .rel-song-input::placeholder { color: rgba(255,255,255,0.3); }
+  .rel-song-input:focus { border-color: rgba(255,255,255,0.45); }
+
+  /* ── RESUMO DO ANO ── */
+  .year-card { background: var(--rose); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: relative; overflow: hidden; transition: transform 0.15s, background 0.2s; }
+  .year-card:hover { background: var(--rose-dk); transform: translateY(-2px); }
+  .year-card::before { content: '♡'; position: absolute; font-size: 130px; color: rgba(255,255,255,0.07); right: -16px; top: -28px; line-height: 1; pointer-events: none; }
+  .year-card-num { font-family: var(--serif); font-size: 26px; color: var(--white); line-height: 1; }
+  .year-card-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+  .year-card-arrow { font-size: 22px; color: rgba(255,255,255,0.6); flex-shrink: 0; }
+
+  .year-overlay { position: fixed; inset: 0; background: var(--cream); z-index: 500; overflow-y: auto; animation: fadeIn 0.3s ease; }
+  .year-overlay-inner { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .year-overlay-close { position: fixed; top: 16px; right: 16px; background: var(--white); border: 1px solid var(--sand); border-radius: 50%; width: 42px; height: 42px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 501; color: var(--muted); transition: all 0.2s; }
+  .year-overlay-close:hover { border-color: var(--rose); color: var(--rose); }
+  .year-overlay-title { font-family: var(--serif); font-size: 40px; text-align: center; color: var(--ink); margin-bottom: 6px; }
+  .year-overlay-sub { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 2.5rem; }
+  .year-month-block { margin-bottom: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--sand); }
+  .year-month-block:last-child { border-bottom: none; }
+  .year-month-name { font-family: var(--serif); font-size: 20px; color: var(--rose); margin-bottom: 1rem; }
+  .year-month-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+  .year-month-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .year-month-msg { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); line-height: 1.6; margin-bottom: 0.75rem; padding-left: 1rem; border-left: 3px solid var(--rose-lt); }
+  .year-month-music { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); background: var(--white); border: 1px solid var(--sand); border-radius: 10px; padding: 8px 12px; }
+
+  /* ── CONQUISTAS ── */
+  .conquistas-config { margin-bottom: 1.5rem; }
+  .conquistas-grid   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .conquista-card    { border-radius: var(--radius); padding: 1.25rem 0.75rem; text-align: center; border: 1px solid var(--sand); background: var(--white); transition: border-color 0.3s, background 0.3s; }
+  .conquista-card.unlocked { background: var(--rose-lt); border-color: var(--rose); animation: slideIn 0.4s ease; }
+  .conquista-card.locked   { opacity: 0.6; }
+  .conquista-icon { font-size: 32px; display: block; margin-bottom: 8px; line-height: 1; }
+  .conquista-card.locked .conquista-icon { filter: grayscale(1); opacity: 0.45; }
+  .conquista-nome { font-size: 12px; font-weight: 500; color: var(--ink); line-height: 1.35; margin-bottom: 5px; }
+  .conquista-card.locked .conquista-nome { color: var(--muted); }
+  .conquista-data { font-size: 11px; color: var(--rose-dk); font-weight: 500; letter-spacing: 0.3px; }
+
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 600px) {
+    nav { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: auto; flex-direction: column; padding: 0; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1px solid var(--sand); border-bottom: none; }
+    .nav-brand { display: none; }
+    .nav-tabs  { width: 100%; justify-content: space-around; padding: 6px 4px 4px; gap: 0; }
+    .nav-tab   { flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 2px; font-size: 10px; border-radius: 8px; min-height: 48px; line-height: 1.2; }
+    .tab-icon  { font-size: 20px; display: block; }
+
+    .section { padding: 1.25rem 1rem; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); min-height: 100svh; }
+
+    #toast { top: auto; bottom: calc(72px + env(safe-area-inset-bottom,0px) + 12px); transform: translateX(-50%) translateY(20px); }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    .counter-number   { font-size: 72px; }
+    .stats-row        { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .counter-name-row { grid-template-columns: 1fr; }
+    .send-row         { flex-direction: column; }
+    .send-row .btn-lembrei, .send-row .btn-primary { width: 100%; }
+    .cover-area   { height: 180px; }
+    .section-title{ font-size: 26px; }
+    .msg-quote    { font-size: 19px; }
+    .memory-music-row  { grid-template-columns: 1fr; }
+    .btn-primary, .btn-lembrei { padding: 16px 24px; }
+    .conquistas-grid   { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 360px) {
+    .counter-number { font-size: 60px; }
+    .nav-tab        { font-size: 9px; }
+  }
+
+  /* ── STREAK ── */
+  #streak-overlay {
+    position: fixed; inset: 0; z-index: 9500;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(253,246,239,0.97);
+    animation: streakIn 0.45s cubic-bezier(.34,1.56,.64,1);
+  }
+  #streak-overlay.hiding { animation: streakOut 0.45s ease forwards; }
+  .streak-emoji-big { font-size: 88px; display: block; animation: streakBeat 0.7s ease infinite alternate; }
+  .streak-num-big   { font-family: var(--serif); font-size: 80px; font-weight: 600; color: var(--rose); line-height: 1; margin: 8px 0 4px; }
+  .streak-label-big { font-size: 15px; color: var(--muted); letter-spacing: 0.5px; }
+  .streak-sub       { font-size: 13px; color: var(--rose); margin-top: 6px; font-style: italic; font-family: var(--serif); }
+
+  #streak-pill {
+    display: none; align-items: center; gap: 5px;
+    background: var(--rose-lt); border: 1.5px solid var(--rose);
+    border-radius: 20px; padding: 3px 10px 3px 8px;
+    font-size: 13px; font-weight: 600; color: var(--rose-dk);
+    cursor: pointer; transition: transform 0.15s;
+    white-space: nowrap;
+  }
+  #streak-pill:hover { transform: scale(1.07); }
+  #streak-pill-emoji { font-size: 15px; }
+
+  @keyframes streakIn  { from { opacity:0; transform:scale(0.7); } to { opacity:1; transform:scale(1); } }
+  @keyframes streakOut { from { opacity:1; transform:scale(1);   } to { opacity:0; transform:scale(0.4); } }
+  @keyframes streakBeat {
+    from { transform: scale(1);    }
+    to   { transform: scale(1.18); }
+  }
+
+  /* ── SETUP OVERLAY ── */
+  #setup-overlay { position:fixed;inset:0;z-index:10000;background:var(--cream);display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem; }
+  .setup-card { background:var(--white);border:1px solid var(--sand);border-radius:var(--radius);padding:2.5rem 2rem;max-width:380px;width:100%;text-align:center; }
+  .setup-logo { font-family:var(--serif);font-style:italic;font-size:34px;color:var(--rose);margin-bottom:0.5rem; }
+  .setup-sub  { font-size:14px;color:var(--muted);margin-bottom:2rem; }
+  .setup-step { display:none; }
+  .setup-step.active { display:block; }
+  .btn-google { display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 20px;border-radius:40px;border:1.5px solid var(--sand);background:var(--white);font-family:var(--sans);font-size:15px;font-weight:500;color:var(--ink);cursor:pointer;transition:all 0.2s;margin-bottom:0.75rem; }
+  .btn-google:hover { border-color:var(--rose);color:var(--rose); }
+  .setup-id-box { background:var(--cream);border:1px solid var(--sand);border-radius:12px;padding:12px 16px;font-size:13px;color:var(--rose-dk);margin:1rem 0;word-break:break-all;cursor:pointer;transition:background 0.2s;font-family:monospace;letter-spacing:0.5px; }
+  .setup-id-box:hover { background:var(--rose-lt); }
+  .setup-id-hint { font-size:12px;color:var(--muted);margin-bottom:1.5rem; }
+  .setup-input { width:100%;background:var(--cream);border:1.5px solid var(--sand);border-radius:12px;padding:12px 16px;font-family:var(--sans);font-size:15px;color:var(--ink);outline:none;transition:border-color 0.2s;margin-bottom:1rem;text-align:center; }
+  .setup-input:focus { border-color:var(--rose); }
+  .btn-skip { background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:0.75rem;text-decoration:underline; }
+  .setup-error { color:var(--rose);font-size:13px;margin-top:10px; }
+  .setup-loading { font-size:14px;color:var(--muted);font-style:italic;margin-top:0.5rem; }
+</style>
+</head>
+<body>
+
+<!-- ════ SETUP OVERLAY ════ -->
+<div id="setup-overlay">
+  <div class="setup-card">
+    <div class="setup-logo"><span class="pulse">♡</span> Nosso Espaço</div>
+    <div class="setup-sub">O espaço de vocês dois.</div>
+
+    <!-- Passo 1: Login Google -->
+    <div class="setup-step" id="setup-step-1">
+      <p style="font-size:15px;color:var(--ink);margin-bottom:1.5rem">Entre com sua conta Google para começar.</p>
+      <button class="btn-google" onclick="loginWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Entrar com Google
+      </button>
+      <div id="setup-loading" class="setup-loading" style="display:none">Entrando...</div>
+    </div>
+
+    <!-- Passo 2: Digitar seu nome -->
+    <div class="setup-step" id="setup-step-2">
+      <p style="font-size:15px;color:var(--ink);margin-bottom:1.5rem">Como você quer ser chamado(a)?</p>
+      <input class="setup-input" id="setup-name-input" placeholder="Seu nome ou apelido..." maxlength="30" />
+      <button class="btn-primary" style="width:100%" onclick="saveName()">Continuar →</button>
+      <div class="setup-error" id="setup-name-error" style="display:none"></div>
+    </div>
+
+    <!-- Passo 3: ID + opções de conexão -->
+    <div class="setup-step" id="setup-step-3">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Seu ID — toque para copiar:</p>
+      <div class="setup-id-box" id="setup-my-id" onclick="copyMyId()">—</div>
+      <p class="setup-id-hint">Compartilhe este ID com seu parceiro(a).</p>
+
+      <!-- Se já conectado -->
+      <div id="setup-already-paired" style="display:none">
+        <div style="background:var(--rose-lt);border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:14px;color:var(--rose-dk)">
+          Você está conectado(a) com <strong id="setup-partner-name">—</strong>
+        </div>
+        <button class="btn-primary" style="width:100%" onclick="closeSetup()">Entrar no app ♡</button><br>
+        <button class="btn-skip" style="color:var(--rose)" onclick="disconnectPair()">Desconectar do parceiro(a)</button>
+      </div>
+
+      <!-- Se não conectado -->
+      <div id="setup-not-paired">
+        <p style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:1rem">Quer sincronizar com alguém?</p>
+        <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="showSetupStep(4)">Sim, quero conectar ♡</button><br>
+        <button class="btn-skip" onclick="skipPairing()">Não, usar sozinho por agora</button>
+      </div>
+    </div>
+
+    <!-- Passo 4: Digitar ID do parceiro -->
+    <div class="setup-step" id="setup-step-4">
+      <p style="font-size:15px;color:var(--ink);margin-bottom:1.5rem">Cole o ID do seu parceiro(a):</p>
+      <input class="setup-input" id="setup-partner-id" placeholder="Cole o ID aqui..." />
+      <button class="btn-primary" style="width:100%" onclick="connectPair()">Enviar solicitação ♡</button><br>
+      <button class="btn-skip" onclick="showSetupStep(3)">← Voltar</button>
+      <div class="setup-error" id="setup-pair-error" style="display:none"></div>
+    </div>
+
+    <!-- Passo 5: Aguardando resposta -->
+    <div class="setup-step" id="setup-step-5">
+      <div style="font-size:48px;margin-bottom:1rem">⏳</div>
+      <p style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:0.5rem">Solicitação enviada!</p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem">Aguardando seu parceiro(a) aceitar a conexão...</p>
+      <button class="btn-skip" onclick="cancelRequest()">Cancelar solicitação</button>
+    </div>
+
+    <!-- Passo 6: Solicitação recebida -->
+    <div class="setup-step" id="setup-step-6">
+      <div style="font-size:48px;margin-bottom:1rem">💌</div>
+      <p style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:0.5rem">Solicitação de conexão</p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem"><strong id="incoming-req-name" style="color:var(--ink)">—</strong> quer se conectar com você!</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" style="flex:1" onclick="acceptRequest()">Aceitar ♡</button>
+        <button style="flex:1;background:var(--sand);color:var(--ink);border:none;border-radius:40px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer" onclick="rejectRequest()">Recusar</button>
+      </div>
+    </div>
+
+    <!-- Passo 7: Conectados! -->
+    <div class="setup-step" id="setup-step-7">
+      <div style="font-size:56px;margin-bottom:1rem">💑</div>
+      <p style="font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ink);margin-bottom:0.5rem">Vocês estão conectados!</p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem">Tudo que vocês salvarem aparece para os dois em tempo real.</p>
+      <button class="btn-primary" style="width:100%" onclick="closeSetup()">Entrar no Nosso Espaço ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de solicitação recebida (quando o app já está aberto) -->
+<div id="req-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(42,31,26,0.6);align-items:center;justify-content:center;padding:1.5rem">
+  <div style="background:var(--white);border-radius:var(--radius);padding:2rem;max-width:340px;width:100%;text-align:center">
+    <div style="font-size:40px;margin-bottom:0.75rem">💌</div>
+    <p style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);margin-bottom:0.5rem">Solicitação de conexão</p>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem"><strong id="req-modal-name" style="color:var(--ink)"></strong> quer se conectar com você!</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" style="flex:1" onclick="acceptRequest()">Aceitar ♡</button>
+      <button style="flex:1;background:var(--sand);color:var(--ink);border:none;border-radius:40px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer" onclick="rejectRequest()">Recusar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">
+  <span class="toast-icon">💌</span>
+  <div class="toast-body">
+    <div class="toast-title">Mensagem de amor</div>
+    <div class="toast-msg" id="toast-msg"></div>
+  </div>
+  <button class="toast-close" onclick="closeToast()">✕</button>
+</div>
+
+<!-- ════ STREAK OVERLAY ════ -->
+<div id="streak-overlay" onclick="_dismissStreak()">
+  <span class="streak-emoji-big">❤️‍🔥</span>
+  <div class="streak-num-big" id="streak-num-big">1</div>
+  <div class="streak-label-big">dias seguidos</div>
+  <div class="streak-sub" id="streak-sub-text">Vocês entraram juntos hoje!</div>
+  <div id="streak-lives-display" style="margin-top:14px;font-size:22px;letter-spacing:4px"></div>
+</div>
+
+<nav>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="nav-brand"><span class="pulse">♡</span> Nosso Espaço</span>
+    <div id="streak-pill" onclick="_dismissStreak()" title="Dias seguidos">
+      <span id="streak-pill-emoji">❤️‍🔥</span>
+      <span id="streak-pill-count">0</span>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('contador',this)"><span class="tab-icon">📅</span><span>Contador</span></button>
+    <button class="nav-tab" onclick="show('mensagens',this)"><span class="tab-icon">💌</span><span>Mensagens</span></button>
+    <button class="nav-tab" onclick="show('desejos',this)"><span class="tab-icon">✨</span><span>Desejos</span></button>
+<button class="nav-tab" id="tab-surpresa" onclick="show('surpresa',this)"><span class="tab-icon">💝</span><span>Surpresa</span></button>
+    <button class="nav-tab" onclick="show('memorias',this)"><span class="tab-icon">📖</span><span>Memórias</span></button>
+    <button class="nav-tab" onclick="show('album',this)"><span class="tab-icon">🖼️</span><span>Álbum</span></button>
+    <button class="nav-tab" onclick="show('poupanca',this)"><span class="tab-icon">💰</span><span>Poupança</span></button>
+    <button class="nav-tab" onclick="show('conquistas',this)"><span class="tab-icon">🏆</span><span>Conquistas</span></button>
+  </div>
+</nav>
+
+<!-- ════ CONTADOR ════ -->
+<section id="sec-contador" class="section active">
+  <h1 class="section-title">Nosso contador</h1>
+  <p class="section-sub">Cada dia ao seu lado conta.</p>
+
+  <div class="cover-area" id="cover-area" onclick="document.getElementById('cover-file-input').click()">
+    <div class="cover-empty" id="cover-empty">
+      <span class="cover-empty-icon">📷</span>
+      <span>Toque para adicionar uma foto de vocês</span>
+    </div>
+    <img id="cover-img" src="" alt="" style="display:none" />
+    <div class="cover-overlay" id="cover-overlay" style="display:none">
+      <span class="cover-names" id="cover-names-label"></span>
+      <button class="cover-upload-btn" onclick="event.stopPropagation();document.getElementById('cover-file-input').click()">Trocar foto</button>
+    </div>
+  </div>
+  <input type="file" id="cover-file-input" accept="image/*" onchange="handleCoverUpload(event)" style="display:none" />
+
+  <div class="counter-card">
+    <div class="counter-number" id="days-number">—</div>
+    <div class="counter-label">dias juntos</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-n" id="s-days">—</div><div class="stat-l">Dias</div></div>
+    <div class="stat-box"><div class="stat-n" id="s-months">—</div><div class="stat-l">Meses</div></div>
+    <div class="stat-box"><div class="stat-n" id="s-weeks">—</div><div class="stat-l">Semanas</div></div>
+    <div class="stat-box"><div class="stat-n" id="s-hours">—</div><div class="stat-l">Horas</div></div>
+  </div>
+
+  <div id="milestone-box" class="milestone" style="display:none">
+    <span style="font-size:24px">🎉</span>
+    <span id="milestone-msg"></span>
+  </div>
+
+  <div style="margin-top:2rem">
+    <label>Nomes <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— cada um pode editar como apelido ♡</span></label>
+    <div class="counter-name-row">
+      <input class="counter-date-input" id="name1" placeholder="Seu nome" />
+      <input class="counter-date-input" id="name2" placeholder="Nome dela" />
+    </div>
+    <label>Data de início do namoro</label>
+    <input type="date" class="counter-date-input" id="date-input" onchange="updateCounter()" />
+  </div>
+
+  <div style="margin-top:2rem">
+    <label>Datas especiais</label>
+    <div class="datas-form" style="margin-bottom:1rem">
+      <div style="flex:2;min-width:140px">
+        <label>Nome da data</label>
+        <input class="datas-input" id="datas-name" placeholder="ex: Primeiro beijo, Aniversário..." />
+      </div>
+      <div style="flex:1;min-width:130px">
+        <label>Data</label>
+        <input class="datas-input" id="datas-date" type="date" />
+      </div>
+      <div style="width:100%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <label class="datas-check-row" for="datas-yearly">
+          <input type="checkbox" id="datas-yearly" />
+          <span>Repetir todo ano</span>
+        </label>
+        <button class="btn-primary" onclick="addSpecialDate()" style="white-space:nowrap">+ Adicionar</button>
+      </div>
+    </div>
+    <div class="datas-list" id="datas-list"></div>
+  </div>
+</section>
+
+<!-- ════ MENSAGENS ════ -->
+<section id="sec-mensagens" class="section">
+  <h1 class="section-title">Mensagem do dia</h1>
+  <p class="section-sub">Um lembrete carinhoso quando você precisar.</p>
+
+  <div class="msg-category">
+    <button class="cat-btn active" onclick="setCategory('all',this)">Todas</button>
+    <button class="cat-btn" onclick="setCategory('amor',this)">Amor</button>
+    <button class="cat-btn" onclick="setCategory('saudade',this)">Saudade</button>
+    <button class="cat-btn" onclick="setCategory('admiracao',this)">Admiração</button>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-quote" id="msg-text">Clique no botão abaixo para receber uma mensagem especial.</div>
+  </div>
+
+  <div style="text-align:center">
+    <button class="btn-primary" onclick="newMessage()">✦ Nova mensagem</button>
+  </div>
+</section>
+
+<!-- ════ DESEJOS ════ -->
+<section id="sec-desejos" class="section">
+  <h1 class="section-title">Lista de desejos</h1>
+  <p class="section-sub">Tudo que queremos viver juntos.</p>
+
+  <div class="wish-tabs">
+    <button class="wish-tab active" onclick="setWishCat('lugares',this)">📍 Lugares</button>
+    <button class="wish-tab" onclick="setWishCat('filmes',this)">🎬 Filmes</button>
+    <button class="wish-tab" onclick="setWishCat('atividades',this)">🎯 Atividades</button>
+  </div>
+
+  <div class="wish-input-row">
+    <input class="wish-input" id="wish-input" placeholder="Adicionar um desejo..." onkeydown="if(event.key==='Enter')addWish()" />
+    <button class="wish-add" onclick="addWish()">+</button>
+  </div>
+
+  <div class="wish-list" id="wish-list"></div>
+</section>
+
+<!-- ════ SURPRESA ════ -->
+<section id="sec-surpresa" class="section">
+  <h1 class="section-title">Surpresa</h1>
+  <p class="section-sub">Mande amor — aparece no celular do outro na hora.</p>
+
+  <div class="surprise-setup">
+    <label>Você é...</label>
+    <div class="role-picker">
+      <div class="role-btn active" id="role-eu" onclick="setRole('eu')">
+        <span class="role-icon">💙</span>
+        <div class="role-name" id="role-eu-name">Eu</div>
+        <div class="role-hint">quem envia</div>
+      </div>
+      <div class="role-btn" id="role-ela" onclick="setRole('ela')">
+        <span class="role-icon">💗</span>
+        <div class="role-name" id="role-ela-name">Ela</div>
+        <div class="role-hint">quem recebe</div>
+      </div>
+    </div>
+
+    <label>Mensagem especial</label>
+    <textarea class="surprise-textarea" id="surprise-text" placeholder="Escreva algo do coração..." rows="3"></textarea>
+
+    <div class="send-row">
+      <button class="btn-lembrei" onclick="sendLembrei()">♡ Lembrei de você</button>
+      <button class="btn-primary" onclick="sendSurprise()" style="flex:2">Enviar surpresa ✦</button>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:1.5rem 0 0.75rem">
+    <label style="margin:0">Mensagens recebidas <span id="unread-badge" style="display:none" class="unread-badge">0</span></label>
+    <button onclick="clearInbox()" style="background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--sans)">Limpar tudo</button>
+  </div>
+  <div id="inbox-list"></div>
+</section>
+
+<!-- ════ MEMÓRIAS ════ -->
+<section id="sec-memorias" class="section">
+  <h1 class="section-title">Memórias</h1>
+  <p class="section-sub">Cada mês, uma história guardada para sempre.</p>
+  <div class="rel-song-card" id="rel-song-area"></div>
+  <div id="memories-list"></div>
+  <input type="file" id="mem-photo-input" accept="image/*" multiple style="display:none" onchange="handleMemoryPhotos(event)" />
+</section>
+
+<!-- ════ ÁLBUM ════ -->
+<section id="sec-album" class="section">
+  <h1 class="section-title">Álbum</h1>
+  <p class="section-sub">Todas as memórias de vocês em um só lugar.</p>
+
+  <div class="album-topbar">
+    <span class="album-count" id="album-count">0 fotos</span>
+    <button class="album-edit-toggle" id="album-edit-btn" onclick="toggleAlbumEdit()">✎ Selecionar</button>
+  </div>
+
+  <div class="album-grid" id="album-grid" style="display:none"></div>
+  <div id="album-empty" class="album-empty-state">
+    <span class="album-empty-icon">📷</span>
+    <span class="album-empty-text">Nenhuma foto ainda — adicione a primeira lembrança ♡</span>
+  </div>
+
+  <div class="album-fab" id="album-fab">
+    <div class="album-fab-menu" id="album-fab-menu" style="display:none">
+      <div class="album-fab-option" onclick="openAlbumCamera()">📷 Tirar foto</div>
+      <div class="album-fab-option" onclick="openAlbumGallery()">🖼️ Escolher da galeria</div>
+    </div>
+    <button class="album-fab-btn" id="album-fab-btn" onclick="toggleAlbumFab(event)">+</button>
+  </div>
+
+  <input type="file" id="album-gallery-input" accept="image/*" multiple style="display:none" onchange="handleAlbumPhotos(event)" />
+  <input type="file" id="album-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handleAlbumPhotos(event)" />
+</section>
+
+<!-- ════ POUPANÇA ════ -->
+<section id="sec-poupanca" class="section">
+  <h1 class="section-title">Poupança juntos</h1>
+  <p class="section-sub">Guardem dinheiro para os sonhos de vocês.</p>
+
+  <div class="poup-new-form">
+    <div style="flex:2;min-width:140px">
+      <label>Nome da meta</label>
+      <input class="poup-input" id="poup-goal-name" placeholder="ex: Viagem, Presente..." style="width:100%" />
+    </div>
+    <div style="flex:1;min-width:120px">
+      <label>Valor alvo (R$)</label>
+      <input class="poup-input" id="poup-goal-target" type="number" min="0" placeholder="1000" style="width:100%" />
+    </div>
+    <button class="btn-primary" onclick="addSavingsGoal()" style="white-space:nowrap">+ Nova meta</button>
+  </div>
+
+  <div class="poup-goals" id="poup-goals-list"></div>
+
+  <div class="poup-hist-section">
+    <h2 style="font-family:var(--serif);font-size:20px;font-weight:400;margin-bottom:1rem;color:var(--ink)">Histórico</h2>
+    <div class="poup-hist-tabs">
+      <button class="poup-hist-tab active" onclick="setSavingsHistTab('all',this)">Juntos</button>
+      <button class="poup-hist-tab" id="poup-tab-n1" onclick="setSavingsHistTab('n1',this)">—</button>
+      <button class="poup-hist-tab" id="poup-tab-n2" onclick="setSavingsHistTab('n2',this)">—</button>
+    </div>
+    <div class="poup-hist-list" id="poup-hist-list"></div>
+  </div>
+</section>
+
+<!-- ════ CONQUISTAS ════ -->
+<section id="sec-conquistas" class="section">
+  <h1 class="section-title">Conquistas</h1>
+  <p class="section-sub">Cada marco da história de vocês.</p>
+
+  <div id="conquistas-stats"></div>
+  <div class="conquistas-grid" id="conquistas-grid"></div>
+
+  <details class="conquistas-config" style="margin-top:1.5rem">
+    <summary style="cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--sans);list-style:none;display:flex;align-items:center;gap:6px;">
+      <span>⚙️</span><span>Configurar aniversários</span>
+    </summary>
+    <div class="counter-name-row" style="margin-top:1rem">
+      <div>
+        <label id="bday1-label">Aniversário dele</label>
+        <input type="date" class="counter-date-input" id="birthday1" onchange="save('birthday1',this.value);renderConquistas()" />
+      </div>
+      <div>
+        <label id="bday2-label">Aniversário dela</label>
+        <input type="date" class="counter-date-input" id="birthday2" onchange="save('birthday2',this.value);renderConquistas()" />
+      </div>
+    </div>
+  </details>
+</section>
+
+<script>
+/* ════ UTILITÁRIOS ════ */
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      alert('⚠️ Armazenamento cheio! Não foi possível salvar. Exclua algumas fotos antigas para liberar espaço.');
+    }
+  }
+  if (window._fbReady && window._currentPairId && window._SYNC_KEYS && window._SYNC_KEYS.includes(key)) {
+    if (key === 'memories') {
+      // Remove fotos antes de enviar ao Firestore (limite de 1MB por documento)
+      const stripped = {};
+      if (val && typeof val === 'object') {
+        Object.entries(val).forEach(([m, d]) => {
+          stripped[m] = { ...d, photos: (d.photos || []).map(p => ({ ...p, dataUrl: '' })) };
+        });
+      }
+      window._fbSync(key, stripped);
+    } else {
+      window._fbSync(key, val);
+    }
+  }
+}
+function load(key, def) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
+
+function compressImage(dataUrl, callback) {
+  const img = new Image();
+  img.onload = () => {
+    const MAX = 900;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+      else         { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    callback(c.toDataURL('image/jpeg', 0.68));
+  };
+  img.src = dataUrl;
+}
+
+/* ════ NAV ════ */
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+if (id === 'memorias')  { renderMemories(); renderRelSong(); }
+  if (id === 'album')     renderAlbum();
+  if (id === 'poupanca')   { renderSavingsGoals(); renderSavingsHist(); }
+  if (id === 'conquistas') renderConquistas();
+}
+
+/* ════ CONTADOR ════ */
+function saveConfig() {
+  save('name1', document.getElementById('name1').value);
+  save('name2', document.getElementById('name2').value);
+}
+
+function updateCounter() {
+  const raw = document.getElementById('date-input').value;
+  if (!raw) return;
+  save('start-date', raw);
+  const start = new Date(raw + 'T00:00:00');
+  const now   = new Date();
+  const diff  = now - start;
+  if (diff < 0) { document.getElementById('days-number').textContent = '?'; return; }
+
+  const days   = Math.floor(diff / 86400000);
+  const weeks  = Math.floor(days / 7);
+  const months = Math.floor(days / 30.44);
+  const hours  = Math.floor(diff / 3600000);
+
+  document.getElementById('days-number').textContent = days.toLocaleString('pt-BR');
+  document.getElementById('s-days').textContent      = days.toLocaleString('pt-BR');
+  document.getElementById('s-months').textContent    = months;
+  document.getElementById('s-weeks').textContent     = weeks;
+  document.getElementById('s-hours').textContent     = hours.toLocaleString('pt-BR');
+
+  const milestones = [
+    [1,'1 dia juntos — que começo lindo!'],
+    [7,'Uma semana inteira juntos ♡'],
+    [30,'Um mês de amor!'],
+    [100,'100 dias! Cada um valeu muito.'],
+    [180,'Meio ano de namoro — incrível!'],
+    [365,'Um ano juntos! Feliz aniversário!'],
+    [500,'500 dias — uma história linda.'],
+    [730,'Dois anos! Que vida abençoada.'],
+    [1000,'1000 dias juntos! Extraordinário.'],
+  ];
+
+  const box = document.getElementById('milestone-box');
+  const msg = document.getElementById('milestone-msg');
+  const hit = [...milestones].reverse().find(([d]) => days >= d);
+  if (hit) { msg.textContent = hit[1]; box.style.display = 'flex'; }
+  else { box.style.display = 'none'; }
+}
+
+function initCounter() {
+  const d  = load('start-date', '');
+  const n1 = load('name1', '');
+  const n2 = load('name2', '');
+  if (d)  { document.getElementById('date-input').value = d; updateCounter(); }
+  if (n1) document.getElementById('name1').value = n1;
+  if (n2) document.getElementById('name2').value = n2;
+}
+
+/* ════ MENSAGENS ════ */
+const MESSAGES = {
+  amor: [
+    'Cada vez que olho pra você, percebo que escolhi a pessoa certa.',
+    'Você é o melhor capítulo de todas as minhas histórias.',
+    'Amar você é a coisa mais natural que já fiz.',
+    'Com você ao meu lado, qualquer dia comum vira especial.',
+    'Você é minha parte favorita de qualquer dia.',
+    'Nunca pensei que alguém pudesse me fazer tão feliz.',
+  ],
+  saudade: [
+    'Penso em você nos momentos mais inesperados — e sorrindo.',
+    'A distância só me faz ter mais certeza do que sinto.',
+    'Cada hora longe de você me faz valorizar mais as que passamos juntos.',
+    'Você me faz falta do jeito mais gostoso que existe.',
+    'Saudade sua é diferente — parece uma quentura no peito.',
+  ],
+  admiracao: [
+    'Você é mais incrível do que percebe.',
+    'Eu te admiro muito — pela sua força, pela sua leveza.',
+    'Você tem um jeito de ser que ilumina tudo ao redor.',
+    'Cada vez que você faz algo pequeno, fico encantado com quem você é.',
+    'Você me inspira a ser uma versão melhor de mim mesmo.',
+    'Tudo em você me surpreende, do seu sorriso à sua forma de pensar.',
+  ],
+};
+
+let currentCat = 'all';
+let lastIdx = -1;
+
+function setCategory(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function newMessage() {
+  const pool = currentCat === 'all' ? Object.values(MESSAGES).flat() : (MESSAGES[currentCat] || []);
+  let idx;
+  do { idx = Math.floor(Math.random() * pool.length); } while (idx === lastIdx && pool.length > 1);
+  lastIdx = idx;
+  const el = document.getElementById('msg-text');
+  el.classList.add('fade');
+  setTimeout(() => { el.textContent = '\u201C' + pool[idx] + '\u201D'; el.classList.remove('fade'); }, 300);
+}
+
+/* ════ DESEJOS ════ */
+let wishCat = 'lugares';
+let wishes  = {};
+
+function setWishCat(cat, el) {
+  wishCat = cat;
+  document.querySelectorAll('.wish-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderWishes();
+}
+
+function addWish() {
+  const input = document.getElementById('wish-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  if (!wishes[wishCat]) wishes[wishCat] = [];
+  wishes[wishCat].unshift({ text, done: false, id: crypto.randomUUID() });
+  save('wishes', wishes);
+  input.value = '';
+  renderWishes();
+}
+
+function toggleWish(id) {
+  const item = wishes[wishCat].find(w => w.id === id);
+  if (item) { item.done = !item.done; save('wishes', wishes); renderWishes(); }
+}
+
+function delWish(id) {
+  wishes[wishCat] = wishes[wishCat].filter(w => w.id !== id);
+  save('wishes', wishes);
+  renderWishes();
+}
+
+function renderWishes() {
+  const list  = document.getElementById('wish-list');
+  const items = wishes[wishCat] || [];
+  if (!items.length) { list.innerHTML = '<div class="empty-state">Nenhum desejo aqui ainda — adicione o primeiro!</div>'; return; }
+  list.innerHTML = items.map(w => `
+    <div class="wish-item">
+      <div class="wish-check ${w.done?'done':''}" onclick="toggleWish('${w.id}')">${w.done?'✓':''}</div>
+      <span class="wish-text ${w.done?'done':''}">${escapeHtml(w.text)}</span>
+      <button class="wish-del" onclick="delWish('${w.id}')">✕</button>
+    </div>`).join('');
+}
+
+/* ════ FOTO DE CAPA ════ */
+function handleCoverUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ALLOWED_TYPES = ['image/jpeg','image/png','image/webp','image/gif'];
+  if (!ALLOWED_TYPES.includes(file.type)) { alert('Tipo de arquivo não permitido. Use JPG, PNG, WebP ou GIF.'); e.target.value = ''; return; }
+  if (file.size > 20 * 1024 * 1024) { alert('Imagem muito grande. Use uma foto com menos de 20 MB.'); e.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    compressImage(ev.target.result, compressed => {
+      save('cover-photo', compressed);
+      applyCover(compressed);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyCover(dataUrl) {
+  const img     = document.getElementById('cover-img');
+  const empty   = document.getElementById('cover-empty');
+  const overlay = document.getElementById('cover-overlay');
+  img.src = dataUrl;
+  img.style.display     = 'block';
+  empty.style.display   = 'none';
+  overlay.style.display = 'flex';
+  updateCoverNames();
+}
+
+function updateCoverNames() {
+  const n1    = document.getElementById('name1').value.trim();
+  const n2    = document.getElementById('name2').value.trim();
+  const label = document.getElementById('cover-names-label');
+  if (n1 && n2) label.textContent = n1 + ' & ' + n2;
+  else label.textContent = n1 || n2 || '';
+}
+
+/* ════ SURPRESA ════ */
+let myRole = 'eu';
+let lastSeenId = load('lastSeenId', 0);
+let inbox = load('inbox', []);
+const STORAGE_KEY = 'nosso-espaco-msgs-v1';
+
+const LEMBREI_MSGS = [
+  'Lembrei de você e sorri à toa. ♡',
+  'Só passando pra dizer que você é incrível.',
+  'Pensei em você agora. Saudade.',
+  'Você é minha parte favorita do dia.',
+  'Tô aqui pensando em você. ♡',
+  'Esse momento precisava de você.',
+  'Você faz falta — do jeitinho que é.',
+  'Só queria que você soubesse que te amo.',
+];
+
+function _applyMyName(myName, partnerName) {
+  const role        = load('myRole', 'eu');
+  const mySlot      = role === 'eu' ? 'name1' : 'name2';
+  const partnerSlot = role === 'eu' ? 'name2' : 'name1';
+  if (myName)      save('my-own-name',  myName);
+  if (partnerName) save('partner-name', partnerName);
+  const meEl = document.getElementById(mySlot);
+  const peEl = document.getElementById(partnerSlot);
+  if (meEl && myName)      meEl.value = myName;
+  if (peEl && partnerName) peEl.value = partnerName;
+  saveConfig(); updateCoverNames(); updateRoleLabels();
+  renderConquistas(); renderSavingsGoals(); renderSavingsHist();
+}
+
+function setRole(role) {
+  myRole = role;
+  document.getElementById('role-eu').classList.toggle('active', role === 'eu');
+  document.getElementById('role-ela').classList.toggle('active', role === 'ela');
+  save('myRole', role);
+  const mn = load('my-own-name', '');
+  const pn = load('partner-name', '');
+  if (mn || pn) _applyMyName(mn, pn);
+  else updateRoleLabels();
+}
+
+function updateRoleLabels() {
+  const n1 = load('name1','Eu') || 'Eu';
+  const n2 = load('name2','Ela') || 'Ela';
+  document.getElementById('role-eu-name').textContent = n1;
+  document.getElementById('role-ela-name').textContent = n2;
+}
+
+function pushMessage(msg) {
+  let msgs = load(STORAGE_KEY, []);
+  msgs.push(msg);
+  if (msgs.length > 50) msgs = msgs.slice(-50);
+  save(STORAGE_KEY, msgs);
+}
+
+function pollMessages() {
+  const msgs   = load(STORAGE_KEY, []);
+  const myName = myRole === 'eu' ? (load('name1','') || 'Eu') : (load('name2','') || 'Ela');
+  const newOnes = msgs.filter(m => m.id > lastSeenId && m.from !== myName);
+  if (!newOnes.length) return;
+  newOnes.forEach(m => { inbox.unshift(m); lastSeenId = Math.max(lastSeenId, m.id); });
+  save('inbox', inbox);
+  save('lastSeenId', lastSeenId);
+  renderInbox();
+  const last = newOnes[newOnes.length - 1];
+  showToastLocal(last.text, true, last.from, last.type);
+  playSound(last.type);
+}
+
+function sendSurprise() {
+  const text = document.getElementById('surprise-text').value.trim();
+  if (!text) { showToastLocal('Escreva uma mensagem primeiro ♡', false); return; }
+  const n1 = load('name1','Eu') || 'Eu';
+  const n2 = load('name2','Ela') || 'Ela';
+  const fromName = myRole === 'eu' ? n1 : n2;
+  pushMessage({ id: crypto.randomUUID(), from: fromName, text, ts: new Date().toISOString(), type: 'mensagem' });
+  document.getElementById('surprise-text').value = '';
+  showToastLocal('Mensagem enviada com amor ✦', false);
+  save('first-surprise-sent', true);
+  save('surprises-sent-count', (load('surprises-sent-count', 0) + 1));
+}
+
+function sendLembrei() {
+  const n1 = load('name1','Eu') || 'Eu';
+  const n2 = load('name2','Ela') || 'Ela';
+  const fromName = myRole === 'eu' ? n1 : n2;
+  const text = LEMBREI_MSGS[Math.floor(Math.random() * LEMBREI_MSGS.length)];
+  pushMessage({ id: crypto.randomUUID(), from: fromName, text, ts: new Date().toISOString(), type: 'lembrei' });
+  showToastLocal('Enviado! ♡', false);
+}
+
+/* ── SOM ── */
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = type === 'lembrei' ? [523.25,659.25,783.99] : [440,554.37];
+    const gap   = type === 'lembrei' ? 0.18 : 0.22;
+    const dur   = type === 'lembrei' ? 0.4  : 0.6;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * gap);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * gap + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * gap + dur);
+      osc.start(ctx.currentTime + i * gap);
+      osc.stop(ctx.currentTime + i * gap + dur);
+    });
+  } catch(e) {}
+}
+
+/* ── TOAST ── */
+let toastTimer = null;
+function showToastLocal(text, incoming = true, from = '', type = 'mensagem') {
+  const toast   = document.getElementById('toast');
+  const msgEl   = document.getElementById('toast-msg');
+  const titleEl = toast.querySelector('.toast-title');
+  const iconEl  = toast.querySelector('.toast-icon');
+  iconEl.textContent  = type === 'lembrei' ? '♡' : '💌';
+  titleEl.textContent = incoming ? (from ? `${from} enviou` : 'Nova mensagem') : 'Enviado com amor';
+  msgEl.textContent   = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(closeToast, 5000);
+}
+function closeToast() { document.getElementById('toast').classList.remove('show'); }
+
+/* ── INBOX ── */
+function renderInbox() {
+  const list   = document.getElementById('inbox-list');
+  const badge  = document.getElementById('unread-badge');
+  const unread = inbox.filter(m => !m.read).length;
+
+  if (unread > 0) {
+    badge.textContent = unread; badge.style.display = 'inline-flex';
+    const t = document.getElementById('tab-surpresa');
+    if (t) t.innerHTML = '<span class="tab-icon">💝</span><span>Surpresa</span> <span class="unread-badge">'+unread+'</span>';
+  } else {
+    badge.style.display = 'none';
+    const t = document.getElementById('tab-surpresa');
+    if (t) t.innerHTML = '<span class="tab-icon">💝</span><span>Surpresa</span>';
+  }
+
+  if (!inbox.length) { list.innerHTML = '<div class="inbox-empty">Nenhuma mensagem ainda — envie a primeira surpresa ♡</div>'; return; }
+
+  list.innerHTML = inbox.map((m, i) => `
+    <div class="inbox-item ${m.read?'':'unread'}" onclick="markRead(${i})">
+      <div class="inbox-from">${m.type==='lembrei'?'♡ ':'💌 '}${escapeHtml(m.from)}</div>
+      <div class="inbox-text">${escapeHtml(m.text)}</div>
+      <div class="inbox-time">${formatTime(m.ts)}</div>
+      <button class="inbox-del" onclick="event.stopPropagation();delInbox(${i})">✕</button>
+    </div>`).join('');
+}
+
+function markRead(i) { inbox[i].read = true; save('inbox', inbox); renderInbox(); }
+function delInbox(i) { inbox.splice(i,1); save('inbox',inbox); renderInbox(); }
+function clearInbox() { inbox = []; save('inbox',inbox); renderInbox(); }
+
+function formatTime(iso) {
+  try {
+    const d = new Date(iso), now = new Date(), diff = now - d;
+    if (diff < 60000) return 'agora mesmo';
+    if (diff < 3600000) return Math.floor(diff/60000) + ' min atrás';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h atrás';
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+  } catch { return ''; }
+}
+
+function startPolling() {
+  // Intervalo removido — Firebase cuida do sync em tempo real
+  // Mantém o listener de storage como fallback para quem não tem Firebase configurado
+  window.addEventListener('storage', e => { if (e.key === STORAGE_KEY) pollMessages(); });
+}
+
+/* ════ MEMÓRIAS MENSAIS ════ */
+let memories = {};
+let currentMemoryMonth = null;
+const openMemoryMonths = new Set();
+
+function renderMemories() {
+  const list    = document.getElementById('memories-list');
+  const startRaw = load('start-date','');
+  if (!startRaw) { list.innerHTML = '<div class="empty-state">Configure a data de início no Contador primeiro. ♡</div>'; return; }
+
+  const start  = new Date(startRaw + 'T00:00:00');
+  const now    = new Date();
+  const months = [];
+  for (let m = 1; m <= 120; m++) {
+    const anniv = new Date(start.getFullYear(), start.getMonth() + m, start.getDate());
+    if (anniv > now) break;
+    months.push({ n: m, date: anniv });
+  }
+
+  if (!months.length) { list.innerHTML = '<div class="empty-state">Ainda não completaram 1 mês juntos — volte em breve! ♡</div>'; return; }
+
+  const filledMonths = months.filter(({ n }) => {
+    const mem = memories[n] || {};
+    return !!(mem.message || (mem.music && mem.music.title) || (mem.photos && mem.photos.length));
+  });
+
+  const toRender = filledMonths.length ? filledMonths : months.slice(-1);
+
+  let yearCardsHtml = '';
+  for (let y = 1; y * 12 <= months.length; y++) {
+    const slice      = months.slice((y - 1) * 12, y * 12);
+    const photoCount = slice.reduce((s, {n}) => s + ((memories[n]?.photos?.length) || 0), 0);
+    const msgCount   = slice.filter(({n}) => !!(memories[n]?.message)).length;
+    const details    = [photoCount ? `${photoCount} foto${photoCount > 1 ? 's' : ''}` : '', msgCount ? `${msgCount} mensagem${msgCount > 1 ? 'ns' : ''}` : ''].filter(Boolean).join(' · ') || 'Nenhum registro ainda';
+    yearCardsHtml += `
+    <div class="year-card" onclick="openYearSummary(${y})">
+      <div>
+        <div class="year-card-num">${y}º ano juntos</div>
+        <div class="year-card-sub">${details}</div>
+      </div>
+      <span class="year-card-arrow">→</span>
+    </div>`;
+  }
+
+  list.innerHTML = yearCardsHtml + toRender.reverse().map(({ n, date }) => {
+    const mem      = memories[n] || {};
+    const hasMsg   = !!mem.message;
+    const hasMusic = !!(mem.music && mem.music.title);
+    const hasPhotos = !!(mem.photos && mem.photos.length);
+    const hasAny   = hasMsg || hasMusic || hasPhotos;
+    const dateStr  = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+    const icons    = [hasPhotos?'📷':'', hasMsg?'📝':'', hasMusic?'🎵':''].filter(Boolean).join(' ');
+    const isOpen   = openMemoryMonths.has(n);
+    return `
+      <div class="memory-card" id="mcard-${n}">
+        <div class="memory-header" onclick="toggleMemory(${n})">
+          <div>
+            <div class="memory-month">${n}º mês de namoro</div>
+            <div class="memory-date">${dateStr}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            ${hasAny ? `<span class="memory-indicators">${icons}</span>` : '<span class="memory-add-hint">+ adicionar</span>'}
+            <span class="memory-chevron${isOpen?' open':''}" id="mchev-${n}">▾</span>
+          </div>
+        </div>
+        <div class="memory-body" id="mbody-${n}" style="display:${isOpen?'block':'none'}"></div>
+      </div>`;
+  }).join('');
+
+  openMemoryMonths.forEach(n => loadMemoryBody(n));
+}
+
+function toggleMemory(n) {
+  const body = document.getElementById('mbody-' + n);
+  const chev = document.getElementById('mchev-' + n);
+  if (openMemoryMonths.has(n)) {
+    openMemoryMonths.delete(n);
+    body.style.display = 'none';
+    chev.classList.remove('open');
+  } else {
+    openMemoryMonths.add(n);
+    body.style.display = 'block';
+    chev.classList.add('open');
+    loadMemoryBody(n);
+  }
+}
+
+function loadMemoryBody(n) {
+  const mem = memories[n] || {};
+  const hasAny = mem.message || (mem.music && mem.music.title) || (mem.photos && mem.photos.length);
+  if (hasAny) renderMemoryView(n); else renderMemoryEdit(n);
+}
+
+function renderMemoryView(n) {
+  const body = document.getElementById('mbody-' + n);
+  const mem  = memories[n] || {};
+  let html   = '';
+
+  if (mem.photos && mem.photos.length) {
+    html += `<div class="memory-photos">` +
+      mem.photos.map(p => `<div class="memory-photo-wrap"><img src="${p}" loading="lazy"/></div>`).join('') +
+      `</div>`;
+  }
+  if (mem.message) html += `<div class="memory-view-msg">"${escapeHtml(mem.message)}"</div>`;
+  if (mem.music && mem.music.title) {
+    const isLink = mem.music.link && mem.music.link.startsWith('http');
+    const tag    = isLink ? 'a' : 'div';
+    const attrs  = isLink ? `href="${escapeHtml(mem.music.link)}" target="_blank" rel="noopener noreferrer"` : '';
+    html += `<${tag} class="memory-view-music" ${attrs}>
+      <span class="memory-view-music-icon">🎵</span>
+      <div style="flex:1">
+        <div class="memory-view-music-title">${escapeHtml(mem.music.title)}</div>
+        ${mem.music.artist ? `<div class="memory-view-music-artist">${escapeHtml(mem.music.artist)}</div>` : ''}
+      </div>
+      ${isLink ? '<span style="font-size:16px;flex-shrink:0;color:var(--rose-dk)">↗</span>' : ''}
+    </${tag}>`;
+  }
+  html += `<button class="memory-edit-btn" onclick="renderMemoryEdit(${n})">✏️ Editar memória</button>`;
+  body.innerHTML = html;
+}
+
+function renderMemoryEdit(n) {
+  const body   = document.getElementById('mbody-' + n);
+  const mem    = memories[n] || {};
+  const photos = mem.photos || [];
+  const canAdd = photos.length < 6;
+  const hasAny = mem.message || (mem.music && mem.music.title) || photos.length;
+
+  const photosHtml = photos.map((p, i) => `
+    <div class="memory-photo-wrap">
+      <img src="${p}" loading="lazy"/>
+      <button class="memory-photo-del" onclick="removeMemoryPhoto(${n},${i})">✕</button>
+    </div>`).join('');
+
+  const addBtn = canAdd ? `
+    <div class="memory-photo-add" onclick="triggerMemoryPhoto(${n})">
+      <span class="memory-photo-add-icon">+</span><span>Foto</span>
+    </div>` : '';
+
+  body.innerHTML = `
+    <span class="memory-block-label">📷 Fotos do mês <span style="font-weight:300;text-transform:none;letter-spacing:0">(máx. 6)</span></span>
+    <div class="memory-photos" id="mphotos-${n}">${photosHtml}${addBtn}</div>
+
+    <span class="memory-block-label">📝 Mensagem do mês</span>
+    <textarea class="memory-textarea" id="mmsg-${n}" placeholder="Como foi esse mês para vocês...">${escapeHtml(mem.message||'')}</textarea>
+
+    <span class="memory-block-label">🎵 Música do mês</span>
+    <div class="memory-music-row">
+      <input class="memory-input" id="mtitle-${n}" placeholder="Nome da música" value="${escapeHtml(mem.music?.title||'')}"/>
+      <input class="memory-input" id="martist-${n}" placeholder="Artista" value="${escapeHtml(mem.music?.artist||'')}"/>
+    </div>
+    <input class="memory-input" id="mlink-${n}" placeholder="Link Spotify ou YouTube (opcional)" value="${escapeHtml(mem.music?.link||'')}" style="margin-bottom:0"/>
+
+    <button class="btn-save-memory" onclick="saveMemory(${n})">Salvar memória ♡</button>
+    ${hasAny ? `<button class="memory-edit-btn" onclick="renderMemoryView(${n})" style="display:block;text-align:center">Cancelar</button>` : ''}
+  `;
+}
+
+function triggerMemoryPhoto(n) {
+  currentMemoryMonth = n;
+  const inp = document.getElementById('mem-photo-input');
+  inp.value = ''; inp.click();
+}
+
+function handleMemoryPhotos(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length || currentMemoryMonth === null) return;
+  const n = currentMemoryMonth;
+  if (!memories[n]) memories[n] = {};
+  if (!memories[n].photos) memories[n].photos = [];
+  const slots     = 6 - memories[n].photos.length;
+  const toProcess = files.slice(0, slots);
+  if (!toProcess.length) return;
+  let done = 0;
+  toProcess.forEach(file => {
+    if (file.size > 8 * 1024 * 1024) { done++; check(); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      compressImage(ev.target.result, compressed => {
+        memories[n].photos.push(compressed);
+        done++; check();
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  function check() { if (done === toProcess.length) { save('memories', memories); renderMemoryEdit(n); } }
+}
+
+function removeMemoryPhoto(n, idx) {
+  if (!memories[n]?.photos) return;
+  memories[n].photos.splice(idx, 1);
+  save('memories', memories);
+  renderMemoryEdit(n);
+}
+
+function saveMemory(n) {
+  if (!memories[n]) memories[n] = {};
+  memories[n].message = document.getElementById('mmsg-'+n)?.value.trim() || '';
+  memories[n].music   = {
+    title:  document.getElementById('mtitle-'+n)?.value.trim() || '',
+    artist: document.getElementById('martist-'+n)?.value.trim() || '',
+    link:   document.getElementById('mlink-'+n)?.value.trim()  || '',
+  };
+  save('memories', memories);
+  openMemoryMonths.clear();
+  openMemoryMonths.add(n);
+  renderMemories();
+  const body = document.getElementById('mbody-' + n);
+  const chev = document.getElementById('mchev-' + n);
+  if (body) body.style.display = 'block';
+  if (chev) chev.classList.add('open');
+  renderMemoryView(n);
+  showToastLocal('Memória salva ♡', false);
+}
+
+/* ════ ÁLBUM DIGITAL ════ */
+let albumPhotos = [];
+let albumEditMode = false;
+let fabOpen = false;
+let lbIndex = 0;
+let lbTouchX = 0;
+
+function renderAlbum() {
+  const grid  = document.getElementById('album-grid');
+  const empty = document.getElementById('album-empty');
+  const count = document.getElementById('album-count');
+  const n     = albumPhotos.length;
+  count.textContent = n + (n === 1 ? ' foto' : ' fotos');
+  if (!n) { grid.style.display = 'none'; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  grid.style.display  = 'grid';
+  grid.className      = 'album-grid' + (albumEditMode ? ' album-edit-mode' : '');
+  grid.innerHTML = albumPhotos.map((p, i) => `
+    <div class="album-item" onclick="${albumEditMode ? '' : `openLightbox(${i})`}">
+      <img src="${p.dataUrl}" loading="lazy"/>
+      ${p.caption ? `<div class="album-caption">${escapeHtml(p.caption)}</div>` : ''}
+      <button class="album-item-del" onclick="event.stopPropagation();deleteAlbumPhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function toggleAlbumEdit() {
+  albumEditMode = !albumEditMode;
+  const btn = document.getElementById('album-edit-btn');
+  btn.classList.toggle('active', albumEditMode);
+  btn.textContent = albumEditMode ? '✓ Concluído' : '✎ Selecionar';
+  renderAlbum();
+}
+
+function toggleAlbumFab(e) {
+  e.stopPropagation();
+  fabOpen = !fabOpen;
+  document.getElementById('album-fab-menu').style.display = fabOpen ? 'flex' : 'none';
+  document.getElementById('album-fab-btn').classList.toggle('fab-open', fabOpen);
+}
+
+function closeAlbumFab() {
+  fabOpen = false;
+  const menu = document.getElementById('album-fab-menu');
+  const btn  = document.getElementById('album-fab-btn');
+  if (menu) menu.style.display = 'none';
+  if (btn)  btn.classList.remove('fab-open');
+}
+
+function openAlbumCamera() {
+  closeAlbumFab();
+  document.getElementById('album-camera-input').click();
+}
+
+function openAlbumGallery() {
+  closeAlbumFab();
+  const inp = document.getElementById('album-gallery-input');
+  inp.value = ''; inp.click();
+}
+
+function handleAlbumPhotos(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+  let done = 0;
+  const ALLOWED_TYPES = ['image/jpeg','image/png','image/webp','image/gif'];
+  files.forEach((file, i) => {
+    if (!ALLOWED_TYPES.includes(file.type)) { done++; check(); return; }
+    if (file.size > 20 * 1024 * 1024) { done++; check(); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      compressImage(ev.target.result, compressed => {
+        albumPhotos.unshift({ id: crypto.randomUUID(), dataUrl: compressed, caption: '', date: new Date().toISOString() });
+        done++; check();
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  function check() { if (done === files.length) { save('album-photos', albumPhotos); renderAlbum(); } }
+}
+
+function deleteAlbumPhoto(i) {
+  if (!confirm('Remover esta foto?')) return;
+  albumPhotos.splice(i, 1);
+  save('album-photos', albumPhotos);
+  renderAlbum();
+}
+
+/* Lightbox */
+function openLightbox(i) {
+  lbIndex = i;
+  document.getElementById('album-lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  updateLightbox();
+}
+
+function updateLightbox() {
+  const p = albumPhotos[lbIndex];
+  const n = albumPhotos.length;
+  document.getElementById('lb-img').src         = p.dataUrl;
+  document.getElementById('lb-caption').value   = p.caption || '';
+  document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + n;
+  document.getElementById('lb-prev').style.display = lbIndex > 0     ? 'flex' : 'none';
+  document.getElementById('lb-next').style.display = lbIndex < n - 1 ? 'flex' : 'none';
+}
+
+function lightboxNav(dir) {
+  saveLbCaption();
+  lbIndex = Math.max(0, Math.min(albumPhotos.length - 1, lbIndex + dir));
+  updateLightbox();
+}
+
+function closeLightbox() {
+  saveLbCaption();
+  document.getElementById('album-lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function saveLbCaption() {
+  const val = document.getElementById('lb-caption')?.value.trim() || '';
+  if (albumPhotos[lbIndex] && albumPhotos[lbIndex].caption !== val) {
+    albumPhotos[lbIndex].caption = val;
+    save('album-photos', albumPhotos);
+    renderAlbum();
+  }
+}
+
+function initAlbumEvents() {
+  const lb = document.getElementById('album-lightbox');
+  lb.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend',   e => { const dx = e.changedTouches[0].clientX - lbTouchX; if (Math.abs(dx) > 55) lightboxNav(dx < 0 ? 1 : -1); });
+
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('album-lightbox').style.display === 'flex') {
+      if (e.key === 'ArrowLeft')  lightboxNav(-1);
+      if (e.key === 'ArrowRight') lightboxNav(1);
+      if (e.key === 'Escape')     closeLightbox();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (fabOpen && !document.getElementById('album-fab')?.contains(e.target)) closeAlbumFab();
+  });
+
+  document.getElementById('lb-caption').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveLbCaption(); document.getElementById('lb-caption').blur(); }
+  });
+}
+
+/* ════ MÚSICA DO RELACIONAMENTO ════ */
+let relSong = {};
+
+function renderRelSong() {
+  const area = document.getElementById('rel-song-area');
+  if (!area) return;
+  if (!relSong.title) {
+    area.innerHTML = `
+      <div class="rel-song-label">🎵 Nossa música</div>
+      <div class="rel-song-empty" onclick="editRelSong()">+ Adicionar a música que representa vocês</div>`;
+    return;
+  }
+  const isLink = relSong.link && relSong.link.startsWith('http');
+  area.innerHTML = `
+    <div class="rel-song-label">🎵 Nossa música</div>
+    <div class="rel-song-view" onclick="editRelSong()">
+      <span class="rel-song-icon">🎵</span>
+      <div class="rel-song-info">
+        <div class="rel-song-name">${escapeHtml(relSong.title)}</div>
+        ${relSong.artist ? `<div class="rel-song-artist">${escapeHtml(relSong.artist)}</div>` : ''}
+      </div>
+      ${isLink ? `<a href="${escapeHtml(relSong.link)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="font-size:18px;color:rgba(255,255,255,0.6);text-decoration:none">↗</a>` : ''}
+      <span class="rel-song-edit-hint">editar</span>
+    </div>`;
+}
+
+function editRelSong() {
+  const area = document.getElementById('rel-song-area');
+  if (!area) return;
+  area.innerHTML = `
+    <div class="rel-song-label">🎵 Nossa música</div>
+    <div class="memory-music-row" style="margin-bottom:8px">
+      <input class="rel-song-input" id="relsong-title"  placeholder="Nome da música" value="${escapeHtml(relSong.title  || '')}" />
+      <input class="rel-song-input" id="relsong-artist" placeholder="Artista"         value="${escapeHtml(relSong.artist || '')}" />
+    </div>
+    <input class="rel-song-input" id="relsong-link" placeholder="Link Spotify ou YouTube (opcional)" value="${escapeHtml(relSong.link || '')}" style="margin-bottom:12px" />
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="saveRelSong()">Salvar</button>
+      ${relSong.title ? `<button onclick="renderRelSong()" style="background:none;border:none;font-size:13px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:var(--sans)">Cancelar</button>` : ''}
+    </div>`;
+}
+
+function saveRelSong() {
+  const title  = document.getElementById('relsong-title')?.value.trim();
+  const artist = document.getElementById('relsong-artist')?.value.trim() || '';
+  const link   = document.getElementById('relsong-link')?.value.trim()   || '';
+  if (!title) { alert('Digite o nome da música.'); return; }
+  relSong = { title, artist, link };
+  save('rel-song', relSong);
+  renderRelSong();
+}
+
+/* ════ RESUMO DO ANO ════ */
+function openYearSummary(year) {
+  const startRaw = load('start-date', '');
+  if (!startRaw) return;
+  const start = new Date(startRaw + 'T00:00:00');
+  const now   = new Date();
+  const yStart = (year - 1) * 12 + 1;
+  const yEnd   = year * 12;
+
+  let blocksHtml = '';
+  let hasAny = false;
+  for (let m = yStart; m <= yEnd; m++) {
+    const anniv = new Date(start.getFullYear(), start.getMonth() + m, start.getDate());
+    if (anniv > now) break;
+    const mem = memories[m] || {};
+    if (!mem.message && !(mem.music?.title) && !(mem.photos?.length)) continue;
+    hasAny = true;
+    const dateStr = anniv.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    blocksHtml += `<div class="year-month-block">`;
+    blocksHtml += `<div class="year-month-name">${m}º mês · ${dateStr}</div>`;
+    if (mem.photos?.length) {
+      blocksHtml += `<div class="year-month-photos">` + mem.photos.map(p => `<img src="${p}" loading="lazy"/>`).join('') + `</div>`;
+    }
+    if (mem.message) {
+      blocksHtml += `<div class="year-month-msg">"${escapeHtml(mem.message)}"</div>`;
+    }
+    if (mem.music?.title) {
+      blocksHtml += `<div class="year-month-music">🎵 ${escapeHtml(mem.music.title)}${mem.music.artist ? ' — ' + escapeHtml(mem.music.artist) : ''}</div>`;
+    }
+    blocksHtml += `</div>`;
+  }
+
+  if (!hasAny) blocksHtml = `<div class="empty-state" style="margin-top:3rem">Nenhuma memória registrada neste ano ainda. ♡</div>`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'year-overlay';
+  overlay.id = 'year-overlay';
+  overlay.innerHTML = `
+    <button class="year-overlay-close" onclick="closeYearSummary()">✕</button>
+    <div class="year-overlay-inner">
+      <div class="year-overlay-title">${year}º ano juntos</div>
+      <div class="year-overlay-sub">Do ${yStart}º ao ${yEnd}º mês de namoro</div>
+      ${blocksHtml}
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeYearSummary() {
+  document.getElementById('year-overlay')?.remove();
+  document.body.style.overflow = '';
+}
+
+/* ════ POUPANÇA ════ */
+let savingsGoals = [], savingsDeposits = [], savingsHistTab = 'all';
+
+function addSavingsGoal() {
+  const name   = document.getElementById('poup-goal-name').value.trim();
+  const target = parseFloat(document.getElementById('poup-goal-target').value);
+  if (!name || isNaN(target) || target <= 0) { alert('Preencha o nome e um valor alvo válido.'); return; }
+  savingsGoals.push({ id: crypto.randomUUID(), name, target });
+  save('savings-goals', savingsGoals);
+  document.getElementById('poup-goal-name').value   = '';
+  document.getElementById('poup-goal-target').value = '';
+  renderSavingsGoals();
+}
+
+function delSavingsGoal(id) {
+  if (!confirm('Remover esta meta e todos os depósitos dela?')) return;
+  savingsGoals    = savingsGoals.filter(g => g.id !== id);
+  savingsDeposits = savingsDeposits.filter(d => d.goalId !== id);
+  save('savings-goals',    savingsGoals);
+  save('savings-deposits', savingsDeposits);
+  renderSavingsGoals();
+  renderSavingsHist();
+}
+
+function toggleDepositForm(id) {
+  const form = document.getElementById('poup-dform-' + id);
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+}
+
+function confirmDeposit(goalId) {
+  const who  = document.getElementById('poup-dwho-'  + goalId).value;
+  const val  = parseFloat(document.getElementById('poup-dval-'  + goalId).value);
+  const note = document.getElementById('poup-dnote-' + goalId).value.trim();
+  if (isNaN(val) || val <= 0) { alert('Informe um valor válido.'); return; }
+  savingsDeposits.push({ id: Date.now(), goalId, who, value: val, note, date: new Date().toLocaleDateString('pt-BR') });
+  save('savings-deposits', savingsDeposits);
+  document.getElementById('poup-dval-'  + goalId).value = '';
+  document.getElementById('poup-dnote-' + goalId).value = '';
+  document.getElementById('poup-dform-' + goalId).style.display = 'none';
+  const goal = savingsGoals.find(g => g.id === goalId);
+  if (goal) {
+    const total = savingsDeposits.filter(d => d.goalId === goalId).reduce((s,d) => s + d.value, 0);
+    if (total >= goal.target) save('poupanca-meta-concluida', true);
+  }
+  renderSavingsGoals();
+  renderSavingsHist();
+}
+
+function renderSavingsGoals() {
+  const list = document.getElementById('poup-goals-list');
+  if (!list) return;
+  const n1 = document.getElementById('name1').value.trim() || 'Você';
+  const n2 = document.getElementById('name2').value.trim() || 'Amor';
+  if (!savingsGoals.length) {
+    list.innerHTML = '<div class="empty-state">Nenhuma meta ainda — crie a primeira acima!</div>';
+    return;
+  }
+  list.innerHTML = savingsGoals.map(g => {
+    const saved     = savingsDeposits.filter(d => d.goalId === g.id).reduce((s, d) => s + d.value, 0);
+    const pct       = Math.min(100, g.target > 0 ? Math.round(saved / g.target * 100) : 0);
+    const fmtSaved  = saved.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const fmtTarget = g.target.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return `
+    <div class="poup-card">
+      <div class="poup-card-header">
+        <span class="poup-card-name">${escapeHtml(g.name)}</span>
+        <button class="poup-card-del" onclick="delSavingsGoal(${g.id})">✕</button>
+      </div>
+      <div class="poup-amounts">
+        <span class="poup-saved">${fmtSaved}</span>
+        <span class="poup-target">de ${fmtTarget}</span>
+      </div>
+      <div class="poup-bar-bg"><div class="poup-bar-fill" style="width:${pct}%"></div></div>
+      <div class="poup-pct">${pct}% concluído</div>
+      <div class="poup-card-actions">
+        <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="toggleDepositForm(${g.id})">💰 Eu guardei!</button>
+      </div>
+      <div class="poup-deposit-form" id="poup-dform-${g.id}" style="display:none">
+        <div class="poup-deposit-row">
+          <div>
+            <label>Quem guardou</label>
+            <select class="poup-input" id="poup-dwho-${g.id}" style="width:100%;cursor:pointer">
+              <option value="${escapeHtml(n1)}">${escapeHtml(n1)}</option>
+              <option value="${escapeHtml(n2)}">${escapeHtml(n2)}</option>
+            </select>
+          </div>
+          <div>
+            <label>Valor (R$)</label>
+            <input class="poup-input" id="poup-dval-${g.id}" type="number" min="0" placeholder="50" style="width:100%" />
+          </div>
+        </div>
+        <div>
+          <label>Nota (opcional)</label>
+          <input class="poup-input" id="poup-dnote-${g.id}" placeholder="ex: Economizei no almoço" style="width:100%" />
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-primary" style="padding:10px 20px;font-size:13px" onclick="confirmDeposit(${g.id})">Confirmar</button>
+          <button onclick="toggleDepositForm(${g.id})" style="background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--sans)">Cancelar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setSavingsHistTab(tab, el) {
+  savingsHistTab = tab;
+  document.querySelectorAll('.poup-hist-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderSavingsHist();
+}
+
+function renderSavingsHist() {
+  const list = document.getElementById('poup-hist-list');
+  if (!list) return;
+  const n1 = document.getElementById('name1').value.trim() || 'Você';
+  const n2 = document.getElementById('name2').value.trim() || 'Amor';
+  const t1 = document.getElementById('poup-tab-n1');
+  const t2 = document.getElementById('poup-tab-n2');
+  if (t1) t1.textContent = n1;
+  if (t2) t2.textContent = n2;
+  let deps = [...savingsDeposits].reverse();
+  if (savingsHistTab === 'n1') deps = deps.filter(d => d.who === n1);
+  if (savingsHistTab === 'n2') deps = deps.filter(d => d.who === n2);
+  if (!deps.length) { list.innerHTML = '<div class="empty-state">Nenhum depósito aqui ainda.</div>'; return; }
+  list.innerHTML = deps.map(d => {
+    const goal   = savingsGoals.find(g => g.id === d.goalId);
+    const fmtVal = d.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return `
+    <div class="poup-hist-entry">
+      <div class="poup-hist-left">
+        <div class="poup-hist-goal">${goal ? escapeHtml(goal.name) : 'Meta removida'}</div>
+        <div class="poup-hist-who">${escapeHtml(d.who)}</div>
+        ${d.note ? `<div class="poup-hist-note">${escapeHtml(d.note)}</div>` : ''}
+      </div>
+      <div class="poup-hist-right">
+        <div class="poup-hist-val">${fmtVal}</div>
+        <div class="poup-hist-date">${d.date}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ════ DATAS ESPECIAIS ════ */
+let specialDates = [];
+
+function addSpecialDate() {
+  const name   = document.getElementById('datas-name').value.trim();
+  const date   = document.getElementById('datas-date').value;
+  const yearly = document.getElementById('datas-yearly').checked;
+  if (!name || !date) { alert('Preencha o nome e a data.'); return; }
+  specialDates.push({ id: Date.now(), name, date, yearly });
+  save('special-dates', specialDates);
+  document.getElementById('datas-name').value  = '';
+  document.getElementById('datas-date').value  = '';
+  document.getElementById('datas-yearly').checked = false;
+  renderSpecialDates();
+}
+
+function delSpecialDate(id) {
+  specialDates = specialDates.filter(d => d.id !== id);
+  save('special-dates', specialDates);
+  renderSpecialDates();
+}
+
+function getDaysUntil(dateStr, yearly) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (yearly) {
+    const orig = new Date(dateStr + 'T00:00:00');
+    let next = new Date(today.getFullYear(), orig.getMonth(), orig.getDate());
+    if (next < today) next.setFullYear(today.getFullYear() + 1);
+    return Math.round((next - today) / 86400000);
+  }
+  return Math.round((new Date(dateStr + 'T00:00:00') - today) / 86400000);
+}
+
+function renderSpecialDates() {
+  const list = document.getElementById('datas-list');
+  if (!list) return;
+  if (!specialDates.length) {
+    list.innerHTML = '<div class="empty-state">Nenhuma data ainda — adicione a primeira acima!</div>';
+    return;
+  }
+
+  const items = specialDates.map(d => ({ ...d, diff: getDaysUntil(d.date, d.yearly) }));
+  items.sort((a, b) => {
+    if (a.diff >= 0 && b.diff >= 0) return a.diff - b.diff;
+    if (a.diff < 0  && b.diff < 0)  return b.diff - a.diff;
+    return a.diff >= 0 ? -1 : 1;
+  });
+
+  list.innerHTML = items.map(d => {
+    const isToday = d.diff === 0;
+    const isTomorrow = d.diff === 1;
+    const isPast  = d.diff < 0;
+    const orig = new Date(d.date + 'T00:00:00');
+    const meta = d.yearly
+      ? 'todo ano em ' + orig.toLocaleDateString('pt-BR', { day:'2-digit', month:'long' })
+      : orig.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+
+    const badgeNum   = isToday ? '🎉' : Math.abs(d.diff);
+    const badgeClass = isPast ? 'past' : '';
+    const badgeLabel = isToday ? 'hoje!' : isPast ? 'atrás' : 'para';
+    const chip = isTomorrow ? '<span class="data-chip">amanhã</span>'
+               : isToday    ? '<span class="data-chip">hoje é o dia!</span>'
+               : '';
+
+    return `
+    <div class="data-card${isToday ? ' is-today' : ''}">
+      <div class="data-badge">
+        <div class="data-badge-num ${badgeClass}">${badgeNum}</div>
+        <div class="data-badge-label">${badgeLabel}</div>
+      </div>
+      <div class="data-info">
+        <div class="data-name">${escapeHtml(d.name)}</div>
+        <div class="data-meta">${meta}</div>
+        ${chip}
+      </div>
+      <button class="data-del" onclick="delSpecialDate(${d.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ════ CONQUISTAS ════ */
+const CONQUISTAS = [
+  // ── Tempo ──
+  { id: 'dia1',    icon: '🌸', nome: 'Primeiro dia juntos',  check: (d)     => d >= 1    },
+  { id: 'sem1',    icon: '🌙', nome: '1 semana juntos',      check: (d)     => d >= 7    },
+  { id: 'mes1',    icon: '🥉', nome: '1 mês juntos',         check: (d)     => d >= 30   },
+  { id: 'mes3',    icon: '🌻', nome: '3 meses juntos',       check: (d)     => d >= 90   },
+  { id: 'dias100', icon: '💛', nome: '100 dias juntos',       check: (d)     => d >= 100  },
+  { id: 'mes6',    icon: '🥈', nome: '6 meses juntos',        check: (d)     => d >= 180  },
+  { id: 'mes9',    icon: '🍂', nome: '9 meses juntos',        check: (d)     => d >= 270  },
+  { id: 'ano1',    icon: '🥇', nome: '1 ano juntos',          check: (d)     => d >= 365  },
+  { id: 'anos2',   icon: '💎', nome: '2 anos juntos',         check: (d)     => d >= 730  },
+  { id: 'anos3',   icon: '👑', nome: '3 anos juntos',         check: (d)     => d >= 1095 },
+  { id: 'anos5',   icon: '💍', nome: '5 anos juntos',         check: (d)     => d >= 1825 },
+  // ── Uso ──
+  { id: 'lugar1',     icon: '📍', nome: 'Primeiro lugar no mapa',    check: () => load('places',[]).length >= 1 },
+  { id: 'lugar5',     icon: '🗺️', nome: 'Exploradores',              check: () => load('places',[]).length >= 5 },
+  { id: 'memoria1',   icon: '📖', nome: 'Primeira memória guardada', check: () => Object.keys(load('memories',{})).length >= 1 },
+  { id: 'memoria12',  icon: '📚', nome: 'Um ano de memórias',        check: () => Object.keys(load('memories',{})).length >= 12 },
+  { id: 'foto1',      icon: '📷', nome: 'Primeira foto no álbum',    check: () => load('album-photos',[]).length >= 1 },
+  { id: 'foto10',     icon: '📸', nome: 'Memorialistas',             check: () => load('album-photos',[]).length >= 10 },
+  { id: 'desejo1',    icon: '✨', nome: 'Primeiro desejo',            check: () => Object.values(load('wishes',{})).some(a=>a.length>0) },
+  { id: 'desejo10',   icon: '🌟', nome: 'Lista cheia de sonhos',      check: () => Object.values(load('wishes',{})).reduce((s,a)=>s+a.length,0)>=10 },
+  { id: 'desejoDone', icon: '✅', nome: 'Sonho realizado',            check: () => Object.values(load('wishes',{})).some(a=>a.some(w=>w.done)) },
+  { id: 'surpresa1',  icon: '💌', nome: 'Primeira surpresa enviada', check: () => load('first-surprise-sent',false)===true },
+  { id: 'surpresa5',  icon: '💝', nome: 'Românticos',                check: () => load('surprises-sent-count',0)>=5 },
+  { id: 'poupanca1',  icon: '💰', nome: 'Poupadores',                check: () => load('savings-goals',[]).length>=1 },
+  { id: 'poupMeta',   icon: '🎯', nome: 'Meta batida',               check: () => load('poupanca-meta-concluida',false)===true },
+  // ── Data especial ──
+  { id: 'namorados', icon: '🌹', nome: 'Dia dos Namorados',      check: (d,s,n) => n.getMonth()===5  && n.getDate()===12 },
+  { id: 'natal',     icon: '🎄', nome: 'Natal juntos',           check: (d,s,n) => n.getMonth()===11 && n.getDate()===25 },
+  { id: 'reveillon', icon: '🎆', nome: 'Réveillon juntos',       check: (d,s,n) => n.getMonth()===0  && n.getDate()===1  },
+  { id: 'anivCasal', icon: '🥂', nome: 'Aniversário do casal',   check: (d,s,n) => !!(s && d>=365 && n.getMonth()===s.getMonth() && n.getDate()===s.getDate()) },
+  { id: 'aniv1', icon: '🎂', nomeKey: 'name1', nome: 'Aniversário dele', check: (d,s,n) => { const b=load('birthday1',''); if(!b)return false; const bd=new Date(b+'T00:00:00'); return n.getMonth()===bd.getMonth()&&n.getDate()===bd.getDate(); } },
+  { id: 'aniv2', icon: '🎂', nomeKey: 'name2', nome: 'Aniversário dela', check: (d,s,n) => { const b=load('birthday2',''); if(!b)return false; const bd=new Date(b+'T00:00:00'); return n.getMonth()===bd.getMonth()&&n.getDate()===bd.getDate(); } },
+  // ── Streak (foguinho) ──
+  { id: 'streak1',   icon: '❤️‍🔥', nome: 'Primeiro foguinho',      check: () => load('streakCount',0) >= 1   },
+  { id: 'streak15',  icon: '🔥',    nome: '15 dias seguidos',        check: () => load('streakCount',0) >= 15  },
+  { id: 'streak30',  icon: '🌶️',   nome: '30 dias em chamas',       check: () => load('streakCount',0) >= 30  },
+  { id: 'streak90',  icon: '💫',    nome: '90 dias imparáveis',      check: () => load('streakCount',0) >= 90  },
+  { id: 'streak120', icon: '⚡',    nome: '120 dias no ritmo',       check: () => load('streakCount',0) >= 120 },
+  { id: 'streak365', icon: '🏅',    nome: 'Um ano de foguinho',      check: () => load('streakCount',0) >= 365 },
+  { id: 'streak500', icon: '🌋',    nome: '500 dias inabaláveis',    check: () => load('streakCount',0) >= 500 },
+  // ── Comportamento ──
+  { id: 'sexta',   icon: '🌈', nome: 'Dia especial',  check: (d,s,n) => n.getDay()===5    },
+  { id: 'coruja',  icon: '🦉', nome: 'Coruja',        check: (d,s,n) => n.getHours()>=23  },
+  { id: 'madruga', icon: '☀️', nome: 'Madrugadores', check: (d,s,n) => n.getHours()<7    },
+  { id: 'volta',   icon: '🔁', nome: 'De volta',      check: ()      => load('c-volta',false)===true },
+];
+
+function renderConquistas() {
+  const grid    = document.getElementById('conquistas-grid');
+  const statsEl = document.getElementById('conquistas-stats');
+  if (!grid) return;
+
+  // Birthday labels + restore saved values
+  const n1 = document.getElementById('name1')?.value.trim() || 'dele';
+  const n2 = document.getElementById('name2')?.value.trim() || 'dela';
+  const l1 = document.getElementById('bday1-label'); if (l1) l1.textContent = `Aniversário de ${n1}`;
+  const l2 = document.getElementById('bday2-label'); if (l2) l2.textContent = `Aniversário de ${n2}`;
+  const bi1 = document.getElementById('birthday1'); if (bi1 && !bi1.value) bi1.value = load('birthday1','');
+  const bi2 = document.getElementById('birthday2'); if (bi2 && !bi2.value) bi2.value = load('birthday2','');
+  // Abre o painel de config se algum aniversário ainda não foi preenchido
+  const cfgDetails = document.querySelector('.conquistas-config');
+  if (cfgDetails && (!load('birthday1','') || !load('birthday2',''))) cfgDetails.open = true;
+
+  const startRaw = load('start-date','');
+  const now      = new Date();
+  const today    = new Date(now); today.setHours(0,0,0,0);
+  let diasJuntos = -1, startDate = null;
+  if (startRaw) {
+    startDate  = new Date(startRaw + 'T00:00:00');
+    diasJuntos = Math.floor((today - startDate) / 86400000);
+  }
+
+  const notificadas = load('conquistas-notificadas', []);
+  const datasMap    = load('conquistas-datas', {});
+  let datasChanged  = false;
+  const novos       = [];
+
+  const cards = CONQUISTAS.map(c => {
+    const jaGuardada = !!datasMap[c.id];
+    const currentOk  = !!(c.check(diasJuntos, startDate, now));
+    const unlocked   = jaGuardada || currentOk;
+
+    if (unlocked && !jaGuardada) { datasMap[c.id] = now.toISOString(); datasChanged = true; }
+    if (unlocked && !notificadas.includes(c.id)) novos.push(c);
+
+    const dataDisplay = (unlocked && datasMap[c.id])
+      ? new Date(datasMap[c.id]).toLocaleDateString('pt-BR') : '';
+
+    const displayNome = c.nomeKey
+      ? `Aniversário de ${document.getElementById(c.nomeKey)?.value.trim() || (c.nomeKey==='name1'?'dele':'dela')}`
+      : c.nome;
+
+    return unlocked
+      ? `<div class="conquista-card unlocked"><span class="conquista-icon">${c.icon}</span><div class="conquista-nome">${displayNome}</div><div class="conquista-data">${dataDisplay}</div></div>`
+      : `<div class="conquista-card locked"><span class="conquista-icon">🔒</span><div class="conquista-nome">${displayNome}</div></div>`;
+  });
+
+  grid.innerHTML = cards.join('');
+
+  const totalUnlocked = cards.filter(h => h.includes('unlocked')).length;
+  if (statsEl) statsEl.innerHTML = `<div class="stats-row" style="grid-template-columns:1fr 1fr;margin-bottom:1.5rem"><div class="stat-box"><div class="stat-n" style="color:var(--rose)">${totalUnlocked}</div><div class="stat-l">Desbloqueadas</div></div><div class="stat-box"><div class="stat-n">${CONQUISTAS.length}</div><div class="stat-l">Total</div></div></div>`;
+
+  if (datasChanged) save('conquistas-datas', datasMap);
+  if (novos.length) {
+    save('conquistas-notificadas', notificadas.concat(novos.map(c => c.id)));
+    novos.forEach((c, i) => setTimeout(() => showToastLocal(`Conquista! ${c.icon} ${c.nome}`, false), i * 1500));
+  }
+}
+
+/* ════ INIT ════ */
+(function() {
+  const lastOpen = load('last-open', null);
+  if (lastOpen && (Date.now() - new Date(lastOpen)) / 86400000 >= 7) save('c-volta', true);
+  save('last-open', new Date().toISOString());
+})();
+initCounter();
+memories        = load('memories', {});
+wishes          = load('wishes', {});
+places          = load('places', []);
+albumPhotos     = load('album-photos', []);
+savingsGoals    = load('savings-goals', []);
+savingsDeposits = load('savings-deposits', []);
+relSong         = load('rel-song', {});
+renderRelSong();
+specialDates    = load('special-dates', []);
+renderConquistas();
+renderWishes();
+renderInbox();
+renderSavingsGoals();
+renderSavingsHist();
+renderSpecialDates();
+updateRoleLabels();
+myRole = load('myRole', 'eu');
+setRole(myRole);
+startPolling();
+initAlbumEvents();
+
+const savedCover = load('cover-photo', null);
+if (savedCover) applyCover(savedCover);
+
+document.getElementById('name1').addEventListener('input', () => { saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist(); });
+document.getElementById('name2').addEventListener('input', () => { saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist(); });
+
+/* ════ FIREBASE / SYNC ════ */
+window._SYNC_KEYS = [
+  'name1','name2','start-date',
+  'wishes','places',
+  'nosso-espaco-msgs-v1',        // fila de mensagens surpresa (compartilhada)
+  'special-dates','rel-song',
+  'savings-goals','savings-deposits',
+  'birthday1','birthday2',
+  'myRole','memories',
+  'first-surprise-sent','surprises-sent-count',
+  'conquistas-datas','poupanca-meta-concluida',
+  'streakCount','streakDate','streakLives','streakLivesMonth'
+  // 'inbox' é por usuário — NÃO sincroniza
+];
+window._currentPairId = null;
+window._fbReady = false;
+
+const _FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBi2OG-WbnvU3SPcJ-KdxNG6v63Ai1nD1o",
+  authDomain: "nosso-espaco-5be9b.firebaseapp.com",
+  projectId: "nosso-espaco-5be9b",
+  storageBucket: "nosso-espaco-5be9b.firebasestorage.app",
+  messagingSenderId: "514169341317",
+  appId: "1:514169341317:web:c6b59383804fd21bd230ec"
+};
+
+let _fbAuth, _fbDb, _fbUser = null, _pairUnsub = null, _reqUnsub = null, _waitUnsub = null;
+let _pendingReqId = null, _pendingReqData = null;
+const _syncTimers = {};
+
+const _isFirebaseConfigured = _FIREBASE_CONFIG.apiKey !== "COLE_AQUI_A_API_KEY";
+try {
+  if (!_isFirebaseConfigured) throw new Error('Firebase não configurado — usando modo local');
+  firebase.initializeApp(_FIREBASE_CONFIG);
+  _fbAuth = firebase.auth();
+  _fbDb   = firebase.firestore();
+
+  _fbAuth.onAuthStateChanged(async user => {
+    if (user) {
+      _fbUser = user;
+      try {
+        // Registra o usuário no Firestore se necessário
+        await _fbDb.collection('users').doc(user.uid).set({ uid: user.uid }, { merge: true });
+        const doc = await _fbDb.collection('users').doc(user.uid).get();
+        const data = doc.data() || {};
+
+        document.getElementById('setup-my-id').textContent = user.uid;
+
+        if (!data.name) {
+          // Primeira vez: pedir nome
+          document.getElementById('setup-overlay').style.display = 'flex';
+          showSetupStep(2);
+        } else if (data.pairId) {
+          // Já conectado com alguém
+          window._currentPairId = data.pairId;
+          localStorage.setItem('__pairId__', data.pairId);
+          window._fbReady = true;
+          _startPairListener();
+          _startRequestListener();
+          closeSetup();
+          // Preenche nomes automaticamente ao carregar
+          try {
+            const [uid1p, uid2p] = data.pairId.split('__');
+            const partnerUidLoad = uid1p === user.uid ? uid2p : uid1p;
+            const partnerDocLoad = await _fbDb.collection('users').doc(partnerUidLoad).get();
+            _applyMyName(data.name || '', partnerDocLoad.data()?.name || '');
+          } catch(e) {}
+          _updateStreak();
+        } else {
+          // Tem nome, mas sem parceiro
+          _startRequestListener();
+          if (!localStorage.getItem('__setup_done__')) {
+            document.getElementById('setup-overlay').style.display = 'flex';
+            _showStep3(data);
+          } else {
+            closeSetup();
+          }
+        }
+      } catch(e) { console.warn('Auth error:', e); closeSetup(); }
+    } else {
+      if (!localStorage.getItem('__setup_done__')) {
+        document.getElementById('setup-overlay').style.display = 'flex';
+        showSetupStep(1);
+      }
+    }
+  });
+} catch(e) {
+  console.warn('Firebase não configurado — rodando sem sync:', e.message);
+}
+
+async function _showStep3(userData) {
+  if (userData?.pairId) {
+    // Busca nome do parceiro
+    try {
+      const pairId = userData.pairId;
+      const [uid1, uid2] = pairId.split('__');
+      const partnerUid = uid1 === _fbUser.uid ? uid2 : uid1;
+      const partnerDoc = await _fbDb.collection('users').doc(partnerUid).get();
+      const partnerName = partnerDoc.data()?.name || 'seu parceiro(a)';
+      document.getElementById('setup-partner-name').textContent = partnerName;
+      document.getElementById('setup-already-paired').style.display = 'block';
+      document.getElementById('setup-not-paired').style.display = 'none';
+    } catch(e) {}
+  } else {
+    document.getElementById('setup-already-paired').style.display = 'none';
+    document.getElementById('setup-not-paired').style.display = 'block';
+  }
+  showSetupStep(3);
+}
+
+window._fbSync = function(key, val) {
+  if (!_fbDb || !window._currentPairId) return;
+  clearTimeout(_syncTimers[key]);
+  _syncTimers[key] = setTimeout(() => {
+    _fbDb.collection('pairs').doc(window._currentPairId)
+      .set({ [key]: val }, { merge: true })
+      .catch(err => console.warn('Sync err:', err));
+  }, 600);
+};
+
+function _startPairListener() {
+  if (_pairUnsub) _pairUnsub();
+  _pairUnsub = _fbDb.collection('pairs').doc(window._currentPairId)
+    .onSnapshot(snap => {
+      if (!snap.exists) return;
+      const data = snap.data();
+      window._SYNC_KEYS.forEach(key => {
+        if (data[key] === undefined) return;
+        const localRaw  = localStorage.getItem(key);
+        const remoteStr = JSON.stringify(data[key]);
+        if (localRaw === remoteStr) return;
+        try { localStorage.setItem(key, remoteStr); } catch(e){}
+        _applyRemote(key, data[key]);
+      });
+    });
+}
+
+function _startRequestListener() {
+  if (!_fbDb || !_fbUser) return;
+  if (_reqUnsub) _reqUnsub();
+  _reqUnsub = _fbDb.collection('connectionRequests')
+    .where('to', '==', _fbUser.uid)
+    .where('status', '==', 'pending')
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const req   = change.doc.data();
+          const reqId = change.doc.id;
+          _pendingReqId   = reqId;
+          _pendingReqData = req;
+          const overlay = document.getElementById('setup-overlay');
+          if (overlay.style.display !== 'none') {
+            document.getElementById('incoming-req-name').textContent = req.fromName || 'Alguém';
+            showSetupStep(6);
+          } else {
+            document.getElementById('req-modal-name').textContent = req.fromName || 'Alguém';
+            document.getElementById('req-modal').style.display = 'flex';
+          }
+        }
+      });
+    });
+}
+
+function _applyRemote(key, val) {
+  switch(key) {
+    case 'name1': case 'name2': {
+      const el = document.getElementById(key);
+      if (el && el.value !== String(val || '')) {
+        el.value = val || '';
+        saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist();
+      }
+      break;
+    }
+    case 'start-date': {
+      const di = document.getElementById('date-input');
+      if (di) { di.value = val || ''; updateCounter(); }
+      break;
+    }
+    case 'wishes':           wishes = val; renderWishes(); break;
+    case 'savings-goals':    savingsGoals = val; renderSavingsGoals(); renderSavingsHist(); break;
+    case 'savings-deposits': savingsDeposits = val; renderSavingsGoals(); renderSavingsHist(); break;
+    case 'special-dates':    specialDates = val; renderSpecialDates(); break;
+    case 'rel-song':         relSong = val; renderRelSong(); break;
+    case 'nosso-espaco-msgs-v1': pollMessages(); break;
+    case 'conquistas-datas': renderConquistas(); break;
+    case 'streakCount': {
+      const pill = document.getElementById('streak-pill');
+      const pc   = document.getElementById('streak-pill-count');
+      if (pill && val > 0) { pc.textContent = val; pill.style.display = 'flex'; }
+      renderConquistas();
+      break;
+    }
+    case 'streakLives': _renderStreakPill(); break;
+    case 'memories':
+      // Mescla apenas texto — fotos ficam locais
+      if (val && typeof val === 'object') {
+        const local = load('memories', {});
+        Object.entries(val).forEach(([m, d]) => {
+          if (!local[m]) local[m] = d;
+          else local[m] = { ...d, photos: local[m].photos || [] };
+        });
+        memories = local;
+        try { localStorage.setItem('memories', JSON.stringify(memories)); } catch(e){}
+      }
+      if (document.getElementById('sec-memorias')?.classList.contains('active')) renderMemories();
+      break;
+  }
+}
+
+/* ── Controles do setup ── */
+function showSetupStep(n) {
+  document.querySelectorAll('.setup-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('setup-step-' + n).classList.add('active');
+}
+
+function closeSetup() {
+  document.getElementById('setup-overlay').style.display = 'none';
+}
+
+function copyMyId() {
+  const id = _fbUser?.uid || '';
+  if (!id) return;
+  navigator.clipboard.writeText(id).then(() => {
+    const el = document.getElementById('setup-my-id');
+    const orig = el.textContent;
+    el.textContent = '✓ Copiado!';
+    setTimeout(() => { el.textContent = orig; }, 1800);
+  }).catch(() => {});
+}
+
+function loginWithGoogle() {
+  document.getElementById('setup-loading').style.display = 'block';
+  const provider = new firebase.auth.GoogleAuthProvider();
+  _fbAuth.signInWithPopup(provider).catch(e => {
+    document.getElementById('setup-loading').style.display = 'none';
+    console.error('Login error:', e);
+    alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
+  });
+}
+
+async function saveName() {
+  const nameEl = document.getElementById('setup-name-input');
+  const errEl  = document.getElementById('setup-name-error');
+  const name   = nameEl.value.trim();
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Digite seu nome.'; errEl.style.display = 'block'; return; }
+  try {
+    await _fbDb.collection('users').doc(_fbUser.uid).set({ name, uid: _fbUser.uid }, { merge: true });
+    _applyMyName(name, load('partner-name', ''));
+    _startRequestListener();
+    const doc  = await _fbDb.collection('users').doc(_fbUser.uid).get();
+    _showStep3(doc.data() || {});
+  } catch(e) {
+    console.error('saveName error:', e);
+    errEl.textContent = 'Não foi possível salvar o nome. Tente novamente.'; errEl.style.display = 'block';
+  }
+}
+
+async function connectPair() {
+  const pid   = document.getElementById('setup-partner-id').value.trim();
+  const errEl = document.getElementById('setup-pair-error');
+  errEl.style.display = 'none';
+  if (!pid) { errEl.textContent = 'Cole o ID do seu parceiro.'; errEl.style.display = 'block'; return; }
+  if (pid === _fbUser.uid) { errEl.textContent = 'Você não pode conectar com você mesmo!'; errEl.style.display = 'block'; return; }
+  try {
+    // Verifica se já está conectado
+    const myDoc = await _fbDb.collection('users').doc(_fbUser.uid).get();
+    if (myDoc.data()?.pairId) {
+      errEl.textContent = 'Você já está conectado com alguém. Desconecte primeiro.';
+      errEl.style.display = 'block'; return;
+    }
+    const partnerDoc = await _fbDb.collection('users').doc(pid).get();
+    if (!partnerDoc.exists) {
+      errEl.textContent = 'ID não encontrado. O parceiro precisa ter aberto o app primeiro.';
+      errEl.style.display = 'block'; return;
+    }
+    if (partnerDoc.data()?.pairId) {
+      errEl.textContent = 'Este usuário já está conectado com outra pessoa.';
+      errEl.style.display = 'block'; return;
+    }
+    const myName = myDoc.data()?.name || 'Alguém';
+    const reqId  = _fbUser.uid + '__' + pid;
+    await _fbDb.collection('connectionRequests').doc(reqId).set({
+      from: _fbUser.uid, fromName: myName, to: pid,
+      status: 'pending', createdAt: new Date().toISOString()
+    });
+    showSetupStep(5);
+    // Escuta quando o parceiro aceitar
+    if (_waitUnsub) _waitUnsub();
+    _waitUnsub = _fbDb.collection('users').doc(_fbUser.uid).onSnapshot(snap => {
+      if (snap.exists && snap.data()?.pairId) {
+        const pairId = snap.data().pairId;
+        window._currentPairId = pairId;
+        localStorage.setItem('__pairId__', pairId);
+        window._fbReady = true;
+        _startPairListener();
+        if (_waitUnsub) { _waitUnsub(); _waitUnsub = null; }
+        // Preenche nomes automaticamente
+        try {
+          const mDoc = await _fbDb.collection('users').doc(_fbUser.uid).get();
+          const partnerUid2 = pid;
+          const pDoc = await _fbDb.collection('users').doc(partnerUid2).get();
+          _applyMyName(mDoc.data()?.name || '', pDoc.data()?.name || '');
+        } catch(e) {}
+        _updateStreak();
+        showSetupStep(7);
+      }
+    });
+  } catch(e) {
+    console.error('connectPair error:', e);
+    errEl.textContent = 'Não foi possível conectar. Verifique o ID e tente novamente.'; errEl.style.display = 'block';
+  }
+}
+
+async function cancelRequest() {
+  const reqId = _fbUser.uid + '__' + (document.getElementById('setup-partner-id')?.value.trim() || '');
+  try { await _fbDb.collection('connectionRequests').doc(reqId).delete(); } catch(e){}
+  if (_waitUnsub) { _waitUnsub(); _waitUnsub = null; }
+  showSetupStep(4);
+}
+
+async function acceptRequest() {
+  if (!_pendingReqId || !_pendingReqData) return;
+  try {
+    const from   = _pendingReqData.from;
+    const pairId = [_fbUser.uid, from].sort().join('__');
+    await _fbDb.collection('users').doc(_fbUser.uid).set({ pairId }, { merge: true });
+    await _fbDb.collection('users').doc(from).set({ pairId }, { merge: true });
+    const pairDoc = await _fbDb.collection('pairs').doc(pairId).get();
+    if (!pairDoc.exists) await _fbDb.collection('pairs').doc(pairId).set({ createdAt: new Date().toISOString() });
+    await _fbDb.collection('connectionRequests').doc(_pendingReqId).delete();
+    window._currentPairId = pairId;
+    localStorage.setItem('__pairId__', pairId);
+    window._fbReady = true;
+    _startPairListener();
+    // Preenche nomes automaticamente
+    try {
+      const myDoc2 = await _fbDb.collection('users').doc(_fbUser.uid).get();
+      _applyMyName(myDoc2.data()?.name || '', _pendingReqData.fromName || '');
+    } catch(e) {}
+    _updateStreak();
+    _pendingReqId = null; _pendingReqData = null;
+    document.getElementById('req-modal').style.display = 'none';
+    showSetupStep(7);
+    if (document.getElementById('setup-overlay').style.display === 'none') {
+      document.getElementById('setup-overlay').style.display = 'flex';
+    }
+  } catch(e) { console.error('acceptRequest error:', e); alert('Não foi possível aceitar a conexão. Tente novamente.'); }
+}
+
+async function rejectRequest() {
+  if (_pendingReqId) {
+    try { await _fbDb.collection('connectionRequests').doc(_pendingReqId).delete(); } catch(e){}
+  }
+  _pendingReqId = null; _pendingReqData = null;
+  document.getElementById('req-modal').style.display = 'none';
+  const doc = await _fbDb.collection('users').doc(_fbUser.uid).get().catch(() => null);
+  _showStep3(doc?.data() || {});
+  document.getElementById('setup-overlay').style.display = 'flex';
+}
+
+async function disconnectPair() {
+  if (!confirm('Tem certeza que deseja se desconectar do seu parceiro(a)?')) return;
+  try {
+    const doc = await _fbDb.collection('users').doc(_fbUser.uid).get();
+    const pairId = doc.data()?.pairId;
+    if (pairId) {
+      const [uid1, uid2] = pairId.split('__');
+      const del = firebase.firestore.FieldValue.delete();
+      await _fbDb.collection('users').doc(uid1).update({ pairId: del });
+      await _fbDb.collection('users').doc(uid2).update({ pairId: del });
+    }
+    if (_pairUnsub) { _pairUnsub(); _pairUnsub = null; }
+    localStorage.removeItem('__pairId__');
+    window._currentPairId = null;
+    window._fbReady = false;
+    location.reload();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+function skipPairing() {
+  localStorage.setItem('__setup_done__', '1');
+  if (_fbUser && _fbDb) {
+    _fbDb.collection('users').doc(_fbUser.uid).set({ uid: _fbUser.uid }, { merge: true }).catch(() => {});
+  }
+  closeSetup();
+}
+
+/* ── Sync periódico a cada 1 minuto ── */
+function _syncAll() {
+  if (!window._fbReady || !window._currentPairId || !_fbDb) return;
+  const data = {};
+  window._SYNC_KEYS.forEach(key => {
+    const val = load(key, null);
+    if (val !== null) data[key] = val;
+  });
+  _fbDb.collection('pairs').doc(window._currentPairId)
+    .set(data, { merge: true })
+    .catch(e => console.warn('Sync periódico falhou:', e));
+}
+setInterval(_syncAll, 60000);
+
+/* ════ STREAK (foguinho) ════ */
+const STREAK_MAX_LIVES = 3;
+
+function _dismissStreak() {
+  const ov = document.getElementById('streak-overlay');
+  if (!ov || ov.style.display === 'none') return;
+  ov.classList.add('hiding');
+  setTimeout(() => { ov.style.display = 'none'; ov.classList.remove('hiding'); }, 440);
+}
+
+function _renderStreakPill() {
+  const streak = load('streakCount', 0);
+  const lives  = load('streakLives', STREAK_MAX_LIVES);
+  const pill   = document.getElementById('streak-pill');
+  const pc     = document.getElementById('streak-pill-count');
+  if (!pill) return;
+  if (streak > 0) {
+    const heartsHtml = Array.from({length: lives}, () => `<span style="font-size:10px">❤️</span>`).join('');
+    pc.innerHTML = `${streak} ${heartsHtml}`;
+    pill.style.display = 'flex';
+  }
+}
+
+function _showStreakUI(count, lives, isNew, usedLife) {
+  _renderStreakPill();
+
+  const shownDate = localStorage.getItem('streak-shown-date');
+  const todayStr  = new Date().toISOString().slice(0, 10);
+  if (!isNew || shownDate === todayStr) return;
+  localStorage.setItem('streak-shown-date', todayStr);
+
+  const numEl   = document.getElementById('streak-num-big');
+  const subEl   = document.getElementById('streak-sub-text');
+  const livesEl = document.getElementById('streak-lives-display');
+  const ov      = document.getElementById('streak-overlay');
+  if (!ov) return;
+
+  numEl.textContent = count;
+  subEl.textContent = usedLife
+    ? `Vida usada! Restam ${lives} ♡`
+    : count === 1
+    ? 'Começaram hoje! Entrem todo dia ❤️'
+    : count < 7
+    ? 'Vocês entraram juntos hoje!'
+    : count < 30
+    ? `${count} dias de amor consecutivo!`
+    : `${count} dias! Inacreditável ❤️‍🔥`;
+
+  if (livesEl) {
+    livesEl.innerHTML = Array.from({length: lives}, () => `<span>❤️</span>`).join('');
+  }
+
+  ov.style.display = 'flex';
+  setTimeout(_dismissStreak, 3000);
+}
+
+async function _updateStreak() {
+  if (!_fbDb || !_fbUser || !window._currentPairId) return;
+  const todayStr     = new Date().toISOString().slice(0, 10);
+  const currentMonth = todayStr.slice(0, 7);
+
+  await _fbDb.collection('users').doc(_fbUser.uid)
+    .set({ lastVisit: todayStr }, { merge: true }).catch(() => {});
+
+  try {
+    const [uid1, uid2] = window._currentPairId.split('__');
+    const partnerUid   = uid1 === _fbUser.uid ? uid2 : uid1;
+
+    const [partnerSnap, pairSnap] = await Promise.all([
+      _fbDb.collection('users').doc(partnerUid).get(),
+      _fbDb.collection('pairs').doc(window._currentPairId).get()
+    ]);
+
+    const partnerLastVisit = partnerSnap.data()?.lastVisit || '';
+    const pairData         = pairSnap.data() || {};
+    let streak      = pairData.streakCount      || 0;
+    const streakDate= pairData.streakDate       || '';
+    let lives       = pairData.streakLives      ?? STREAK_MAX_LIVES;
+    let livesMonth  = pairData.streakLivesMonth || '';
+
+    // Reseta vidas no início de cada mês
+    if (livesMonth !== currentMonth) {
+      lives      = STREAK_MAX_LIVES;
+      livesMonth = currentMonth;
+    }
+
+    if (streakDate === todayStr) {
+      save('streakCount', streak);
+      save('streakLives',  lives);
+      _showStreakUI(streak, lives, false, false);
+      return;
+    }
+
+    if (partnerLastVisit === todayStr) {
+      let usedLife    = false;
+      let daysMissed  = 0;
+
+      if (streakDate) {
+        const last  = new Date(streakDate + 'T00:00:00');
+        const today = new Date(todayStr   + 'T00:00:00');
+        daysMissed  = Math.floor((today - last) / 86400000) - 1;
+      }
+
+      if (daysMissed <= 0) {
+        // Dia consecutivo normal
+        streak = streakDate ? streak + 1 : 1;
+      } else if (lives >= daysMissed) {
+        // Usa vidas para cobrir os dias perdidos
+        lives   -= daysMissed;
+        streak++;
+        usedLife = true;
+      } else {
+        // Vidas insuficientes — reseta
+        streak = 1;
+      }
+
+      const updates = { streakCount: streak, streakDate: todayStr, streakLives: lives, streakLivesMonth: livesMonth };
+      save('streakCount',      streak);
+      save('streakDate',       todayStr);
+      save('streakLives',      lives);
+      save('streakLivesMonth', livesMonth);
+      await _fbDb.collection('pairs').doc(window._currentPairId).set(updates, { merge: true });
+      renderConquistas();
+      _showStreakUI(streak, lives, true, usedLife);
+    } else {
+      save('streakCount', streak);
+      save('streakLives',  lives);
+      _showStreakUI(streak, lives, false, false);
+    }
+  } catch(e) { console.warn('Streak error:', e); }
+}
+</script>
+
+<!-- Lightbox do Álbum -->
+<div id="album-lightbox" class="album-lightbox" style="display:none">
+  <span class="album-lb-counter" id="lb-counter"></span>
+  <button class="album-lb-close" onclick="closeLightbox()">✕</button>
+  <button class="album-lb-nav album-lb-prev" id="lb-prev" onclick="lightboxNav(-1)">‹</button>
+  <img class="album-lb-img" id="lb-img" src="" alt="" />
+  <button class="album-lb-nav album-lb-next" id="lb-next" onclick="lightboxNav(1)">›</button>
+  <input class="album-lb-caption" id="lb-caption" placeholder="Adicionar legenda..." />
+</div>
+</body>
+</html>
