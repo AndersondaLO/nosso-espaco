@@ -2503,7 +2503,7 @@ async function connectPair() {
     showSetupStep(5);
     // Escuta quando o parceiro aceitar
     if (_waitUnsub) _waitUnsub();
-    _waitUnsub = _fbDb.collection('users').doc(_fbUser.uid).onSnapshot(snap => {
+    _waitUnsub = _fbDb.collection('users').doc(_fbUser.uid).onSnapshot(async snap => {
       if (snap.exists && snap.data()?.pairId) {
         const pairId = snap.data().pairId;
         window._currentPairId = pairId;
