@@ -2295,10 +2295,8 @@ try {
         }
       } catch(e) { console.warn('Auth error:', e); closeSetup(); }
     } else {
-      if (!localStorage.getItem('__setup_done__')) {
-        document.getElementById('setup-overlay').style.display = 'flex';
-        showSetupStep(1);
-      }
+      document.getElementById('setup-overlay').style.display = 'flex';
+      showSetupStep(1);
     }
   });
 } catch(e) {
