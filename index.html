@@ -2207,7 +2207,7 @@ updateRoleLabels();
 myRole = load('myRole', 'eu');
 setRole(myRole);
 startPolling();
-initAlbumEvents();
+document.addEventListener('DOMContentLoaded', initAlbumEvents);
 
 const savedCover = load('cover-photo', null);
 if (savedCover) applyCover(savedCover);
