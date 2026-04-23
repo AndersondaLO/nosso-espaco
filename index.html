@@ -319,6 +319,9 @@
   .cover-names    { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--white); text-shadow: 0 1px 6px rgba(0,0,0,.4); }
   .cover-upload-btn { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; color: var(--white); font-size: 12px; font-family: var(--sans); padding: 5px 14px; cursor: pointer; backdrop-filter: blur(6px); transition: background 0.2s; }
   .cover-upload-btn:hover { background: rgba(255,255,255,0.28); }
+  .cover-area.adjusting { cursor: grab; }
+  .cover-area.adjusting img { cursor: grab; }
+  .cover-adjust-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.6); color: #fff; font-size: 13px; padding: 8px 16px; border-radius: 20px; pointer-events: none; white-space: nowrap; }
   .cover-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
   .cover-empty-icon { font-size: 36px; opacity: 0.5; }
   #cover-file-input { display: none; }
@@ -803,7 +806,10 @@
     <img id="cover-img" src="" alt="" style="display:none" />
     <div class="cover-overlay" id="cover-overlay" style="display:none">
       <span class="cover-names" id="cover-names-label"></span>
-      <button class="cover-upload-btn" onclick="event.stopPropagation();document.getElementById('cover-file-input').click()">Trocar foto</button>
+      <div style="display:flex;gap:6px">
+        <button class="cover-upload-btn" onclick="event.stopPropagation();startCoverAdjust()">Ajustar</button>
+        <button class="cover-upload-btn" onclick="event.stopPropagation();document.getElementById('cover-file-input').click()">Trocar foto</button>
+      </div>
     </div>
   </div>
   <input type="file" id="cover-file-input" accept="image/*" onchange="handleCoverUpload(event)" style="display:none" />
@@ -1253,7 +1259,75 @@ function applyCover(dataUrl) {
   img.style.display     = 'block';
   empty.style.display   = 'none';
   overlay.style.display = 'flex';
+  const pos = load('cover-position', '50% 50%');
+  img.style.objectPosition = pos;
   updateCoverNames();
+}
+
+function startCoverAdjust() {
+  const area = document.getElementById('cover-area');
+  const img  = document.getElementById('cover-img');
+  const overlay = document.getElementById('cover-overlay');
+  if (!img.src) return;
+
+  area.classList.add('adjusting');
+  overlay.style.display = 'none';
+
+  const hint = document.createElement('div');
+  hint.className = 'cover-adjust-hint';
+  hint.textContent = 'Arraste para ajustar · Toque para concluir';
+  area.appendChild(hint);
+
+  let startX, startY, posX, posY;
+  const rect = area.getBoundingClientRect();
+
+  const getPos = () => {
+    const cur = img.style.objectPosition || '50% 50%';
+    const [px, py] = cur.split(' ').map(v => parseFloat(v));
+    return { x: px, y: py };
+  };
+
+  const onStart = e => {
+    e.preventDefault();
+    const p = e.touches ? e.touches[0] : e;
+    startX = p.clientX; startY = p.clientY;
+    const cur = getPos();
+    posX = cur.x; posY = cur.y;
+  };
+
+  const onMove = e => {
+    e.preventDefault();
+    if (startX === undefined) return;
+    const p = e.touches ? e.touches[0] : e;
+    const dx = ((p.clientX - startX) / rect.width)  * -100;
+    const dy = ((p.clientY - startY) / rect.height) * -100;
+    const nx = Math.max(0, Math.min(100, posX + dx));
+    const ny = Math.max(0, Math.min(100, posY + dy));
+    img.style.objectPosition = `${nx}% ${ny}%`;
+  };
+
+  const onEnd = () => {
+    area.classList.remove('adjusting');
+    overlay.style.display = 'flex';
+    hint.remove();
+    const finalPos = img.style.objectPosition;
+    save('cover-position', finalPos);
+    area.removeEventListener('mousedown',  onStart);
+    area.removeEventListener('mousemove',  onMove);
+    area.removeEventListener('mouseup',    onEnd);
+    area.removeEventListener('touchstart', onStart);
+    area.removeEventListener('touchmove',  onMove);
+    area.removeEventListener('touchend',   onEnd);
+    area.onclick = () => document.getElementById('cover-file-input').click();
+  };
+
+  area.onclick = null;
+  area.addEventListener('mousedown',  onStart, { passive: false });
+  area.addEventListener('mousemove',  onMove,  { passive: false });
+  area.addEventListener('mouseup',    onEnd);
+  area.addEventListener('touchstart', onStart, { passive: false });
+  area.addEventListener('touchmove',  onMove,  { passive: false });
+  area.addEventListener('touchend',   onEnd);
 }
 
 function updateCoverNames() {
