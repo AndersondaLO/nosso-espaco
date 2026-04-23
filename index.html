@@ -2304,8 +2304,23 @@ try {
   _fbAuth = firebase.auth();
   _fbDb   = firebase.firestore();
 
+  // Mostra loading enquanto Firebase resolve o estado de auth
+  document.getElementById('setup-overlay').style.display = 'flex';
+  document.getElementById('setup-loading').style.display = 'block';
+  document.querySelectorAll('.setup-step').forEach(el => el.style.display = 'none');
+
+  let _authResolved = false;
+
+  _fbAuth.getRedirectResult().catch(e => {
+    console.error('Redirect result error:', e.code, e.message);
+  });
+
   _fbAuth.onAuthStateChanged(async user => {
-    console.log('Auth state changed:', user ? user.email : 'null');
+    if (_authResolved) return; // ignora chamadas duplicadas
+    _authResolved = true;
+    document.getElementById('setup-loading').style.display = 'none';
+    document.querySelectorAll('.setup-step').forEach(el => el.style.display = '');
+
     if (user) {
       _fbUser = user;
       try {
@@ -2346,7 +2361,7 @@ try {
             closeSetup();
           }
         }
-      } catch(e) { console.warn('Auth error:', e); closeSetup(); }
+      } catch(e) { console.error('Auth error:', e); closeSetup(); }
     } else {
       document.getElementById('setup-overlay').style.display = 'flex';
       showSetupStep(1);
@@ -2496,21 +2511,16 @@ function copyMyId() {
   }).catch(() => {});
 }
 
-let _loginInProgress = false;
 function loginWithGoogle() {
-  if (_loginInProgress) return;
-  _loginInProgress = true;
   document.getElementById('setup-loading').style.display = 'block';
+  document.querySelectorAll('.setup-step').forEach(el => el.style.display = 'none');
   const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithPopup(provider).then(() => {
-    _loginInProgress = false;
-  }).catch(e => {
-    _loginInProgress = false;
+  _fbAuth.signInWithRedirect(provider).catch(e => {
     document.getElementById('setup-loading').style.display = 'none';
-    if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') {
-      console.error('Login error:', e);
-      alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
-    }
+    document.querySelectorAll('.setup-step').forEach(el => el.style.display = '');
+    showSetupStep(1);
+    console.error('Login error:', e);
+    alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
   });
 }
 
