@@ -2309,15 +2309,15 @@ try {
   document.getElementById('setup-loading').style.display = 'block';
   document.querySelectorAll('.setup-step').forEach(el => el.style.display = 'none');
 
-  let _authResolved = false;
-
-  _fbAuth.getRedirectResult().catch(e => {
+  let _redirectProcessed = false;
+  _fbAuth.getRedirectResult().then(() => {
+    _redirectProcessed = true;
+  }).catch(e => {
+    _redirectProcessed = true;
     console.error('Redirect result error:', e.code, e.message);
   });
 
   _fbAuth.onAuthStateChanged(async user => {
-    if (_authResolved) return; // ignora chamadas duplicadas
-    _authResolved = true;
     document.getElementById('setup-loading').style.display = 'none';
     document.querySelectorAll('.setup-step').forEach(el => el.style.display = '');
 
@@ -2363,8 +2363,19 @@ try {
         }
       } catch(e) { console.error('Auth error:', e); closeSetup(); }
     } else {
-      document.getElementById('setup-overlay').style.display = 'flex';
-      showSetupStep(1);
+      const showLogin = () => {
+        if (!_fbAuth.currentUser) {
+          document.getElementById('setup-overlay').style.display = 'flex';
+          showSetupStep(1);
+        }
+      };
+      if (_redirectProcessed) {
+        showLogin();
+      } else {
+        const wait = setInterval(() => {
+          if (_redirectProcessed) { clearInterval(wait); showLogin(); }
+        }, 50);
+      }
     }
   });
 } catch(e) {
