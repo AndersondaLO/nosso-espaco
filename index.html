@@ -2302,17 +2302,7 @@ try {
   if (!_isFirebaseConfigured) throw new Error('Firebase não configurado — usando modo local');
   firebase.initializeApp(_FIREBASE_CONFIG);
   _fbAuth = firebase.auth();
-  _fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   _fbDb   = firebase.firestore();
-
-  let _redirectChecked = false;
-  _fbAuth.getRedirectResult().then(result => {
-    if (result && result.user) console.log('Redirect login OK:', result.user.email);
-  }).catch(e => {
-    console.error('Redirect result error:', e.code, e.message);
-  }).finally(() => {
-    _redirectChecked = true;
-  });
 
   _fbAuth.onAuthStateChanged(async user => {
     console.log('Auth state changed:', user ? user.email : 'null');
@@ -2358,21 +2348,8 @@ try {
         }
       } catch(e) { console.warn('Auth error:', e); closeSetup(); }
     } else {
-      if (_redirectChecked) {
-        document.getElementById('setup-overlay').style.display = 'flex';
-        showSetupStep(1);
-      } else {
-        // Aguarda o redirect result antes de mostrar o login
-        const wait = setInterval(() => {
-          if (_redirectChecked) {
-            clearInterval(wait);
-            if (!_fbAuth.currentUser) {
-              document.getElementById('setup-overlay').style.display = 'flex';
-              showSetupStep(1);
-            }
-          }
-        }, 100);
-      }
+      document.getElementById('setup-overlay').style.display = 'flex';
+      showSetupStep(1);
     }
   });
 } catch(e) {
@@ -2519,13 +2496,21 @@ function copyMyId() {
   }).catch(() => {});
 }
 
+let _loginInProgress = false;
 function loginWithGoogle() {
+  if (_loginInProgress) return;
+  _loginInProgress = true;
   document.getElementById('setup-loading').style.display = 'block';
   const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithRedirect(provider).catch(e => {
+  _fbAuth.signInWithPopup(provider).then(() => {
+    _loginInProgress = false;
+  }).catch(e => {
+    _loginInProgress = false;
     document.getElementById('setup-loading').style.display = 'none';
-    console.error('Login error:', e);
-    alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
+    if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') {
+      console.error('Login error:', e);
+      alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
+    }
   });
 }
 
