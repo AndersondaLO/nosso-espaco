@@ -23,6 +23,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -832,11 +833,32 @@
   </div>
 
   <div style="margin-top:2rem">
-    <label>Nomes <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— cada um pode editar como apelido ♡</span></label>
-    <div class="counter-name-row">
-      <input class="counter-date-input" id="name1" placeholder="Seu nome" />
-      <input class="counter-date-input" id="name2" placeholder="Nome dela" />
+    <!-- Inputs ocultos mantidos para compatibilidade interna -->
+    <input type="hidden" id="name1" />
+    <input type="hidden" id="name2" />
+
+    <!-- Display de nomes quando conectado -->
+    <div id="names-connected" style="display:none">
+      <label>Nomes</label>
+      <div style="display:flex;gap:10px;align-items:center;background:var(--white);border:1.5px solid var(--sand);border-radius:12px;padding:12px 16px;margin-bottom:12px">
+        <span style="font-size:20px">♡</span>
+        <div style="flex:1">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:2px">Vocês dois</div>
+          <div id="names-display" style="font-family:var(--serif);font-size:17px;color:var(--ink)">—</div>
+        </div>
+        <button onclick="editMyName()" style="background:var(--rose-lt);border:none;border-radius:8px;padding:6px 12px;font-size:12px;color:var(--rose-dk);cursor:pointer;font-family:var(--sans)">Editar</button>
+      </div>
     </div>
+
+    <!-- Inputs visíveis sem conta conectada -->
+    <div id="names-manual">
+      <label>Nomes <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— cada um pode editar como apelido ♡</span></label>
+      <div class="counter-name-row">
+        <input class="counter-date-input" id="name1-vis" placeholder="Seu nome" oninput="syncNameInput('name1',this.value)" />
+        <input class="counter-date-input" id="name2-vis" placeholder="Nome dela" oninput="syncNameInput('name2',this.value)" />
+      </div>
+    </div>
+
     <label>Data de início do namoro</label>
     <input type="date" class="counter-date-input" id="date-input" onchange="updateCounter()" />
   </div>
@@ -1361,12 +1383,48 @@ function _applyMyName(myName, partnerName) {
   const partnerSlot = role === 'eu' ? 'name2' : 'name1';
   if (myName)      save('my-own-name',  myName);
   if (partnerName) save('partner-name', partnerName);
-  const meEl = document.getElementById(mySlot);
-  const peEl = document.getElementById(partnerSlot);
-  if (meEl && myName)      meEl.value = myName;
-  if (peEl && partnerName) peEl.value = partnerName;
+  const meEl  = document.getElementById(mySlot);
+  const peEl  = document.getElementById(partnerSlot);
+  const meVis = document.getElementById(mySlot + '-vis');
+  const peVis = document.getElementById(partnerSlot + '-vis');
+  if (meEl  && myName)      meEl.value  = myName;
+  if (peEl  && partnerName) peEl.value  = partnerName;
+  if (meVis && myName)      meVis.value = myName;
+  if (peVis && partnerName) peVis.value = partnerName;
+  _updateNamesDisplay();
   saveConfig(); updateCoverNames(); updateRoleLabels();
   renderConquistas(); renderSavingsGoals(); renderSavingsHist();
+}
+
+function _updateNamesDisplay() {
+  const myName      = load('my-own-name', '');
+  const partnerName = load('partner-name', '');
+  const connected   = document.getElementById('names-connected');
+  const manual      = document.getElementById('names-manual');
+  const display     = document.getElementById('names-display');
+  if (myName && partnerName && connected && manual) {
+    connected.style.display = 'block';
+    manual.style.display    = 'none';
+    display.textContent     = myName + ' & ' + partnerName;
+  } else {
+    if (connected) connected.style.display = 'none';
+    if (manual)    manual.style.display    = 'block';
+  }
+}
+
+async function editMyName() {
+  const current = load('my-own-name', '');
+  const novo = prompt('Seu nome ou apelido:', current);
+  if (!novo || !novo.trim() || novo.trim() === current) return;
+  const name = novo.trim();
+  try {
+    if (_fbUser && _fbDb) {
+      await _fbDb.collection('users').doc(_fbUser.uid).set({ name }, { merge: true });
+    }
+    _applyMyName(name, load('partner-name', ''));
+  } catch(e) {
+    alert('Não foi possível salvar. Tente novamente.');
+  }
 }
 
 function setRole(role) {
@@ -2340,14 +2398,17 @@ renderSpecialDates();
 updateRoleLabels();
 myRole = load('myRole', 'eu');
 setRole(myRole);
+_updateNamesDisplay();
 startPolling();
 document.addEventListener('DOMContentLoaded', initAlbumEvents);
 
 const savedCover = load('cover-photo', null);
 if (savedCover) applyCover(savedCover);
 
-document.getElementById('name1').addEventListener('input', () => { saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist(); });
-document.getElementById('name2').addEventListener('input', () => { saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist(); });
+function syncNameInput(key, val) {
+  document.getElementById(key).value = val;
+  saveConfig(); updateCoverNames(); updateRoleLabels(); renderSavingsGoals(); renderSavingsHist();
+}
 
 /* ════ FIREBASE / SYNC ════ */
 window._SYNC_KEYS = [
@@ -2385,6 +2446,7 @@ try {
   firebase.initializeApp(_FIREBASE_CONFIG);
   _fbAuth = firebase.auth();
   _fbDb   = firebase.firestore();
+  const _fbMsg = firebase.messaging();
 
   // Mostra loading enquanto Firebase resolve o estado de auth
   document.getElementById('setup-overlay').style.display = 'flex';
@@ -2597,6 +2659,27 @@ function closeSetup() {
   const showCard = !window._currentPairId;
   const card = document.getElementById('connect-card');
   if (card) card.style.display = showCard ? 'block' : 'none';
+  // Pede permissão de notificação após login
+  _initNotifications();
+}
+
+async function _initNotifications() {
+  if (!_fbUser || !_fbMsg) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const swReg = await navigator.serviceWorker.ready;
+    const token = await _fbMsg.getToken({
+      vapidKey: 'X5346RdcsTkqB8TIXtn7MhMwF7QfMwfyELMdiIXCMZs',
+      serviceWorkerRegistration: swReg
+    });
+    if (token) {
+      await _fbDb.collection('users').doc(_fbUser.uid).set({ fcmToken: token }, { merge: true });
+    }
+  } catch(e) {
+    console.warn('Notificações não disponíveis:', e.message);
+  }
 }
 
 function openConnectPanel() {
