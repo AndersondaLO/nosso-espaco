@@ -2304,10 +2304,13 @@ try {
   _fbAuth = firebase.auth();
   _fbDb   = firebase.firestore();
 
+  let _redirectChecked = false;
   _fbAuth.getRedirectResult().then(result => {
     if (result && result.user) console.log('Redirect login OK:', result.user.email);
   }).catch(e => {
     console.error('Redirect result error:', e.code, e.message);
+  }).finally(() => {
+    _redirectChecked = true;
   });
 
   _fbAuth.onAuthStateChanged(async user => {
@@ -2353,8 +2356,21 @@ try {
         }
       } catch(e) { console.warn('Auth error:', e); closeSetup(); }
     } else {
-      document.getElementById('setup-overlay').style.display = 'flex';
-      showSetupStep(1);
+      if (_redirectChecked) {
+        document.getElementById('setup-overlay').style.display = 'flex';
+        showSetupStep(1);
+      } else {
+        // Aguarda o redirect result antes de mostrar o login
+        const wait = setInterval(() => {
+          if (_redirectChecked) {
+            clearInterval(wait);
+            if (!_fbAuth.currentUser) {
+              document.getElementById('setup-overlay').style.display = 'flex';
+              showSetupStep(1);
+            }
+          }
+        }, 100);
+      }
     }
   });
 } catch(e) {
