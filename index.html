@@ -2254,6 +2254,8 @@ try {
   _fbAuth = firebase.auth();
   _fbDb   = firebase.firestore();
 
+  _fbAuth.getRedirectResult().catch(() => {});
+
   _fbAuth.onAuthStateChanged(async user => {
     if (user) {
       _fbUser = user;
@@ -2445,19 +2447,13 @@ function copyMyId() {
   }).catch(() => {});
 }
 
-let _loginInProgress = false;
 function loginWithGoogle() {
-  if (_loginInProgress) return;
-  _loginInProgress = true;
   document.getElementById('setup-loading').style.display = 'block';
   const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithPopup(provider).catch(e => {
+  _fbAuth.signInWithRedirect(provider).catch(e => {
     document.getElementById('setup-loading').style.display = 'none';
-    _loginInProgress = false;
-    if (e.code !== 'auth/cancelled-popup-request') {
-      console.error('Login error:', e);
-      alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
-    }
+    console.error('Login error:', e);
+    alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
   });
 }
 
