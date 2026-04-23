@@ -2302,6 +2302,7 @@ try {
   if (!_isFirebaseConfigured) throw new Error('Firebase não configurado — usando modo local');
   firebase.initializeApp(_FIREBASE_CONFIG);
   _fbAuth = firebase.auth();
+  _fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   _fbDb   = firebase.firestore();
 
   let _redirectChecked = false;
@@ -2314,6 +2315,7 @@ try {
   });
 
   _fbAuth.onAuthStateChanged(async user => {
+    console.log('Auth state changed:', user ? user.email : 'null');
     if (user) {
       _fbUser = user;
       try {
