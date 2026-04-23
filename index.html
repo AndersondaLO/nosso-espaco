@@ -2445,13 +2445,19 @@ function copyMyId() {
   }).catch(() => {});
 }
 
+let _loginInProgress = false;
 function loginWithGoogle() {
+  if (_loginInProgress) return;
+  _loginInProgress = true;
   document.getElementById('setup-loading').style.display = 'block';
   const provider = new firebase.auth.GoogleAuthProvider();
   _fbAuth.signInWithPopup(provider).catch(e => {
     document.getElementById('setup-loading').style.display = 'none';
-    console.error('Login error:', e);
-    alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
+    _loginInProgress = false;
+    if (e.code !== 'auth/cancelled-popup-request') {
+      console.error('Login error:', e);
+      alert('Não foi possível entrar com Google. Verifique sua conexão e tente novamente.');
+    }
   });
 }
 
