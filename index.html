@@ -2526,7 +2526,21 @@ function loginWithGoogle() {
   document.getElementById('setup-loading').style.display = 'block';
   document.querySelectorAll('.setup-step').forEach(el => el.style.display = 'none');
   const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithRedirect(provider).catch(e => {
+  const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+  const doLogin = isMobile
+    ? _fbAuth.signInWithPopup(provider)
+    : _fbAuth.signInWithRedirect(provider);
+  doLogin.catch(e => {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+      // Popup bloqueado no mobile — tenta redirect
+      _fbAuth.signInWithRedirect(provider).catch(err => {
+        document.getElementById('setup-loading').style.display = 'none';
+        document.querySelectorAll('.setup-step').forEach(el => el.style.display = '');
+        showSetupStep(1);
+        console.error('Login error:', err);
+      });
+      return;
+    }
     document.getElementById('setup-loading').style.display = 'none';
     document.querySelectorAll('.setup-step').forEach(el => el.style.display = '');
     showSetupStep(1);
