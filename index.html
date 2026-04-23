@@ -787,6 +787,14 @@
   <h1 class="section-title">Nosso contador</h1>
   <p class="section-sub">Cada dia ao seu lado conta.</p>
 
+  <!-- Card de conexão — visível só quando sem parceiro -->
+  <div id="connect-card" style="display:none;background:var(--rose-lt);border:1.5px dashed var(--rose);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.5rem;">
+    <div style="font-size:28px;margin-bottom:8px">💑</div>
+    <div style="font-family:var(--serif);font-size:18px;color:var(--rose-dk);margin-bottom:6px">Conecte-se com seu parceiro(a)</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Compartilhe seu ID ou insira o ID de quem você ama para sincronizar o app.</div>
+    <button class="btn-primary" onclick="openConnectPanel()">Conectar agora</button>
+  </div>
+
   <div class="cover-area" id="cover-area" onclick="document.getElementById('cover-file-input').click()">
     <div class="cover-empty" id="cover-empty">
       <span class="cover-empty-icon">📷</span>
@@ -2343,6 +2351,8 @@ try {
           _startPairListener();
           _startRequestListener();
           closeSetup();
+          const card = document.getElementById('connect-card');
+          if (card) card.style.display = 'none';
           // Preenche nomes automaticamente ao carregar
           try {
             const [uid1p, uid2p] = data.pairId.split('__');
@@ -2509,6 +2519,19 @@ function showSetupStep(n) {
 
 function closeSetup() {
   document.getElementById('setup-overlay').style.display = 'none';
+  // Mostra card de conexão se não tiver parceiro
+  const showCard = !window._currentPairId;
+  const card = document.getElementById('connect-card');
+  if (card) card.style.display = showCard ? 'block' : 'none';
+}
+
+function openConnectPanel() {
+  if (!_fbUser) return;
+  document.getElementById('setup-my-id').textContent = _fbUser.uid;
+  document.getElementById('setup-overlay').style.display = 'flex';
+  _fbDb.collection('users').doc(_fbUser.uid).get().then(doc => {
+    _showStep3(doc.data() || {});
+  });
 }
 
 function copyMyId() {
