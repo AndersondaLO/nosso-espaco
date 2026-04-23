@@ -1402,10 +1402,10 @@ function _updateNamesDisplay() {
   const connected   = document.getElementById('names-connected');
   const manual      = document.getElementById('names-manual');
   const display     = document.getElementById('names-display');
-  if (myName && partnerName && connected && manual) {
+  if (myName && connected && manual) {
     connected.style.display = 'block';
     manual.style.display    = 'none';
-    display.textContent     = myName + ' & ' + partnerName;
+    display.textContent     = partnerName ? myName + ' & ' + partnerName : myName + ' & …';
   } else {
     if (connected) connected.style.display = 'none';
     if (manual)    manual.style.display    = 'block';
